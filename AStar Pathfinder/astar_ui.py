@@ -5,24 +5,14 @@ WIDTH = 1000
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
 pygame.display.set_caption('A* Pathfinder Algorithm')
 
-BLACK = (0, 0, 0)
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-GREEN = (0, 255, 0)
-BLUE = (0, 255, 0)
-YELLOW = (255, 255, 0)
-PURPLE = (128, 0, 128)
-ORANGE = (255, 165, 0)
-GREY = (128, 128, 128)
-TEAL = (64, 224, 208)
+BLACK, RED, GREEN, BLUE, WHITE = (0, 0, 0), (255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 255)
+YELLOW, PURPLE, ORANGE, GREY, TEAL = (255, 255, 0), (128, 0, 128), (255, 165, 0), (128, 128, 128), (64, 224, 208)
 
 
 class Node:
     def __init__(self, row, col, width, tot_rows):
-        self.row = row
-        self.col = col
-        self.x = width * row
-        self.y = width * col
+        self.row, self.col = row, col
+        self.x, self.y = width * row, width * col
         self.color = WHITE
         self.neighbours = []
         self.width = width
@@ -99,9 +89,8 @@ def rec_path(came_from, curr, draw):
 
 
 def astar_algorithm(draw, grid, start, end):
-    cnt, open_set = 0, PriorityQueue()
+    cnt, came_from, open_set = 0, {}, PriorityQueue()
     open_set.put((0, cnt, start))
-    came_from = {}
     g_score = {node: float('inf') for row in grid for node in row}  # all -> ♾️
     f_score = {node: float('inf') for row in grid for node in row}  # all -> ♾️
     g_score[start] = 0
@@ -139,8 +128,7 @@ def astar_algorithm(draw, grid, start, end):
 
 
 def make_grid(rows, width):
-    grid = []
-    gap = width // rows
+    grid, gap = [], width // rows
     for i in range(rows):
         grid.append([])
         for j in range(rows):
@@ -159,39 +147,29 @@ def draw_grid(win, rows, width):
 
 def draw(win, grid, rows, width):
     win.fill(WHITE)
-
     for row in grid:
         for node in row:
             node.draw(win)
-
     draw_grid(win, rows, width)
     pygame.display.update()
-
-
-def read_grid_layout(path):
-    with open(path, 'r') as f:
-        return [line.strip('\n') for line in f]
 
 
 def get_clicked_pos(pos, rows, width):
     gap = width // rows
     y, x = pos
-    row = y // gap
-    col = x // gap
-    return row, col
+    return y // gap, x // gap
 
 
 def main(win, width):
-    ROWS, start, end = 100, None, None
+    start, end, ROWS = None, None, 50
     grid = make_grid(ROWS, width)
 
     run = True
     while run:
         draw(win, grid, ROWS, width)
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT:  # Quit
                 run = False
-
             if pygame.mouse.get_pressed()[0]:  # LMB
                 pos = pygame.mouse.get_pos()
                 row, col = get_clicked_pos(pos, ROWS, width)
@@ -205,7 +183,6 @@ def main(win, width):
                         end.make_end()
                     elif node != start and node != end:
                         node.make_barrier()
-
             elif pygame.mouse.get_pressed()[2]:  # RMB
                 pos = pygame.mouse.get_pos()
                 row, col = get_clicked_pos(pos, ROWS, width)
@@ -215,14 +192,12 @@ def main(win, width):
                     start = None
                 elif node == end:
                     end = None
-
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and start and end:
+                if event.key == pygame.K_SPACE and start and end:  # Start A*
                     for row in grid:
                         for node in row:
                             node.update_neighbours(grid)
                     astar_algorithm(lambda: draw(win, grid, ROWS, width), grid, start, end)
-
                 if event.key == pygame.K_x:  # Clear Grid
                     start, end, grid = None, None, make_grid(ROWS, width)
     pygame.quit()
