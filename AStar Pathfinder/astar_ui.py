@@ -1,5 +1,5 @@
-import pygame
 from queue import PriorityQueue
+import pygame
 
 WIDTH = 1000
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
