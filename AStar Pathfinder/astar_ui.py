@@ -1,10 +1,8 @@
 import pygame
-import math
 from queue import PriorityQueue
 
 WIDTH = 1000
 WIN = pygame.display.set_mode((WIDTH, WIDTH))
-premade_labyrinth_layout_path = 'assets/labyrinth.txt'
 pygame.display.set_caption('A* Pathfinder Algorithm')
 
 BLACK = (0, 0, 0)
@@ -85,9 +83,6 @@ class Node:
 
         if self.col < self.tot_rows - 1 and not grid[self.row][self.col + 1].is_barrier():  # RIGHT
             self.neighbours.append(grid[self.row][self.col + 1])
-
-    def __lt__(self, other):
-        return False
 
 
 def H(p1, p2):
@@ -187,7 +182,7 @@ def get_clicked_pos(pos, rows, width):
 
 
 def main(win, width):
-    ROWS, start, end = 50, None, None
+    ROWS, start, end = 100, None, None
     grid = make_grid(ROWS, width)
 
     run = True
@@ -228,11 +223,8 @@ def main(win, width):
                             node.update_neighbours(grid)
                     astar_algorithm(lambda: draw(win, grid, ROWS, width), grid, start, end)
 
-                if event.key == pygame.K_x: # Clear Grid
+                if event.key == pygame.K_x:  # Clear Grid
                     start, end, grid = None, None, make_grid(ROWS, width)
-                if event.key == pygame.K_l: # Load Labyrinth - MAYBE l + 1 etc.
-                    print(read_grid_layout(premade_labyrinth_layout_path))
-                    # start, end, grid = None, None, make_grid(ROWS, width)
     pygame.quit()
 
 
