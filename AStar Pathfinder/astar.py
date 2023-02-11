@@ -17,7 +17,6 @@ ORANGE = (255, 165, 0)
 GREY = (128, 128, 128)
 TEAL = (64, 224, 208)
 
-
 class Node:
     def __init__(self, row, col, width, tot_rows):
         self.row = row
@@ -31,37 +30,37 @@ class Node:
 
     def get_pos(self):
         return self.row, self.col
-
+        
     def reset(self):
         return self.color == WHITE
-
+    
     def is_closed(self):
         return self.color == RED
-
+    
     def is_open(self):
         return self.color == GREEN
-
+    
     def is_barrier(self):
         return self.color == BLACK
-
+    
     def is_start(self):
         return self.color == ORANGE
-
+    
     def is_end(self):
         return self.color == TEAL
 
     def make_closed(self):
         self.color = RED
-
+    
     def make_open(self):
         self.color = GREEN
-
+    
     def make_barrier(self):
         self.color = BLACK
-
+    
     def make_start(self):
         self.color = ORANGE
-
+    
     def make_end(self):
         self.color = TEAL
 
@@ -73,10 +72,10 @@ class Node:
 
     def update_neighbours(self, grid):
         pass
-
+    
     def __lt__(self, other):
         return False
-
+    
 
 def H(p1, p2):
     x1, y1, x2, y2 = p1, p2
@@ -108,7 +107,7 @@ def draw(win, grid, rows, width):
     for row in grid:
         for node in row:
             node.draw(win)
-
+    
     draw_grid(win, rows, width)
     pygame.display.update()
 
@@ -121,7 +120,6 @@ def get_clicked_pos(pos, rows, width):
     col = x // gap
 
     return row, col
-
 
 def main(win, width):
     ROWS = 50
@@ -140,7 +138,7 @@ def main(win, width):
             if started:
                 continue
 
-            if pygame.mouse.get_pressed()[0]:  # LMB
+            if pygame.mouse.get_pressed()[0]: #LMB
                 pos = pygame.mouse.get_pos()
                 row, col = get_clicked_pos(pos, ROWS, width)
                 node = grid[row][col]
@@ -153,10 +151,8 @@ def main(win, width):
                 elif node != start and node != end:
                     node.make_barrier()
 
-            elif pygame.mouse.get_pressed()[2]:  # RMB
+            elif pygame.mouse.get_pressed()[2]: #RMB
                 pass
-
     pygame.quit()
-
 
 main(WIN, WIDTH)
