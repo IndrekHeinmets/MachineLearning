@@ -143,24 +143,23 @@ def main(map):
     for row in grid:
         for node in row:
             if node.pos == start_pos:
-                start = node
                 node.make_start()
-            if node.pos == destination_pos:
-                dest = node
+                start = node
+            elif node.pos == destination_pos:
                 node.make_destination()
-            if any(pos == node.pos for pos in barrier_pos):
+                dest = node
+            elif any(pos == node.pos for pos in barrier_pos):
                 node.make_barrier()
             
-    # Start A* Pathfinder
-    for row in grid:
-        for node in row:
-            node.update_neighbours(grid)
-    astar_algorithm(start, dest, grid)
+    # # Start A* Pathfinder
+    # for row in grid:
+    #     for node in row:
+    #         node.update_neighbours(grid)
+    # astar_algorithm(start, dest, grid)
 
     for row in grid:
         for node in row:
-            if node.state == 'path':
-                print(node)
+            print(node.state)
 
 
 map1 = [
