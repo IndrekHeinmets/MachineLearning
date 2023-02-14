@@ -16,16 +16,16 @@ class Node:
 
     def is_open(self):
         return self.state == 'open'
-    
+
     def is_start(self):
         return self.state == 'start'
-    
+
     def is_barrier(self):
         return self.state == 'barrier'
-    
+
     def is_destination(self):
         return self.state == 'destination'
-    
+
     def is_closed(self):
         return self.state == 'closed'
 
@@ -135,19 +135,15 @@ def make_grid(rows, cols):
 #         curr.make_path()
 
 
+def display_path(path_pos, map_arr):
+    for i in range(len(map_arr)):
+        for j in range(len(map_arr[0])):
+            if any((i, j) == path for path in path_pos):
+                map_arr[i][j] = '*'
+    for c, row in enumerate(map_arr):
+        map_arr[c] = ''.join(row)
+    return map_arr
 
-
-
-def display_path(path_pos, map):
-    for row in map_arr:
-        for node in row:
-            if any((row, node) == path for path in path_pos):
-                map_arr[row][node] = '*'
-    for row in map_arr:
-        row = ''.join(node for node in row)
-    print(map_arr)
-
-    
 
 def main(map):
     map_arr = map_to_array(map)
@@ -165,10 +161,9 @@ def main(map):
             elif any(node.pos == pos for pos in barrier_pos):
                 node.make_barrier()
 
-    path_pos = [(2, 5), (2, 6), (7, 2), (7, 3), (8, 1)]
-    display_path(path_pos, map)
+    # path_pos = [(2, 5), (2, 12), (7, 2), (7, 3), (8, 1), (11, 14), (14, 12)]
+    # print(display_path(path_pos, map_arr))
 
-            
     # # Start A* Pathfinder
     # for row in grid:
     #     for node in row:
@@ -204,4 +199,3 @@ map1 = [
 
 if __name__ == '__main__':
     main(map1)
-
