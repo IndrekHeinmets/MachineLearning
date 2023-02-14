@@ -65,12 +65,6 @@ def H(p1, p2):
     return abs(x1 - x2) + abs(y1 - y2)
 
 
-def rec_path(came_from, curr):
-    while curr in came_from:
-        curr = came_from[curr]
-        curr.make_path()
-
-
 def astar_algorithm(start, dest, grid):
     cnt, came_from, open_set = 0, {}, PriorityQueue()
     open_set.put((0, cnt, start))
@@ -135,6 +129,26 @@ def make_grid(rows, cols):
     return grid
 
 
+# def rec_path(came_from, curr):
+#     while curr in came_from:
+#         curr = came_from[curr]
+#         curr.make_path()
+
+
+
+
+
+def display_path(path_pos, map):
+    for row in map_arr:
+        for node in row:
+            if any((row, node) == path for path in path_pos):
+                map_arr[row][node] = '*'
+    for row in map_arr:
+        row = ''.join(node for node in row)
+    print(map_arr)
+
+    
+
 def main(map):
     map_arr = map_to_array(map)
     rows, cols = len(map_arr), len(map_arr[0])
@@ -148,8 +162,12 @@ def main(map):
             elif node.pos == destination_pos:
                 node.make_destination()
                 dest = node
-            elif any(pos == node.pos for pos in barrier_pos):
+            elif any(node.pos == pos for pos in barrier_pos):
                 node.make_barrier()
+
+    path_pos = [(2, 5), (2, 6), (7, 2), (7, 3), (8, 1)]
+    display_path(path_pos, map)
+
             
     # # Start A* Pathfinder
     # for row in grid:
