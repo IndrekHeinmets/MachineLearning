@@ -24,9 +24,6 @@ class Node:
     def reset(self):
         self.color = WHITE
 
-    def is_barrier(self):
-        return self.color == BLACK
-
     def make_closed(self):
         self.color = RED
 
@@ -35,6 +32,9 @@ class Node:
 
     def make_barrier(self):
         self.color = BLACK
+    
+    def is_barrier(self):
+        return self.color == BLACK
 
     def make_start(self):
         self.color = ORANGE
