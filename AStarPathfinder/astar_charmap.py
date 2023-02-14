@@ -14,21 +14,6 @@ class Node:
     def reset(self):
         self.state = 'base'
 
-    def is_open(self):
-        return self.state == 'open'
-
-    def is_start(self):
-        return self.state == 'start'
-
-    def is_barrier(self):
-        return self.state == 'barrier'
-
-    def is_destination(self):
-        return self.state == 'destination'
-
-    def is_closed(self):
-        return self.state == 'closed'
-
     def make_open(self):
         self.state == 'open'
 
@@ -37,6 +22,9 @@ class Node:
 
     def make_barrier(self):
         self.state == 'barrier'
+
+    def is_barrier(self):
+        return self.state == 'barrier'
 
     def make_destination(self):
         self.state == 'destination'
