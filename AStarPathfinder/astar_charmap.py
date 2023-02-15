@@ -21,19 +21,19 @@ class Node:
         self.state = 'start'
 
     def make_barrier(self):
-        self.state == 'barrier'
+        self.state = 'barrier'
 
     def is_barrier(self):
         return self.state == 'barrier'
 
     def make_destination(self):
-        self.state == 'destination'
+        self.state = 'destination'
 
     def make_closed(self):
         self.state = 'closed'
 
     def make_path(self):
-        self.state == 'path'
+        self.state = 'path'
 
     def update_neighbours(self, grid):
         self.neighbours = []
@@ -54,8 +54,8 @@ def H(p1, p2):
 
 
 def astar_algorithm(start, dest, grid):
-    cnt, came_from, open_set = 0, {}, PriorityQueue()
-    open_set.put((0, cnt, start))
+    c, came_from, open_set = 0, {}, PriorityQueue()
+    open_set.put((0, c, start))
     g_score = {node: float('inf') for row in grid for node in row}  # all -> ♾️
     f_score = {node: float('inf') for row in grid for node in row}  # all -> ♾️
     g_score[start] = 0
@@ -69,7 +69,6 @@ def astar_algorithm(start, dest, grid):
         if curr == dest:
             rec_path(came_from, dest)
             start.make_start()
-            dest.make_destination()
             return True
 
         for neighbor in curr.neighbours:
@@ -79,8 +78,8 @@ def astar_algorithm(start, dest, grid):
                 g_score[neighbor] = temp_g_score
                 f_score[neighbor] = temp_g_score + H(neighbor.get_pos(), dest.get_pos())
                 if neighbor not in open_set_hash:
-                    cnt += 1
-                    open_set.put((f_score[neighbor], cnt, neighbor))
+                    c += 1
+                    open_set.put((f_score[neighbor], c, neighbor))
                     open_set_hash.add(neighbor)
                     neighbor.make_open()
         if curr != start:
@@ -91,7 +90,7 @@ def astar_algorithm(start, dest, grid):
 def map_to_array(map):
     map_arr = []
     for row in map:
-        map_arr.append([*row])
+        map_arr.append(['/', *row, '/'])
     return map_arr
 
 
@@ -117,10 +116,10 @@ def make_grid(rows, cols):
     return grid
 
 
-# def rec_path(came_from, curr):
-#     while curr in came_from:
-#         curr = came_from[curr]
-#         curr.make_path()
+def rec_path(came_from, curr):
+    while curr in came_from:
+        curr = came_from[curr]
+        curr.make_path()
 
 
 def display_path(path_pos, map_arr):
@@ -141,49 +140,49 @@ def main(map):
     for row in grid:
         for node in row:
             if node.pos == start_pos:
-                node.make_start()
                 start = node
+                node.make_start()
             elif node.pos == destination_pos:
-                node.make_destination()
                 dest = node
+                node.make_destination()
             elif any(node.pos == pos for pos in barrier_pos):
                 node.make_barrier()
 
-    # path_pos = [(2, 5), (2, 12), (7, 2), (7, 3), (8, 1), (11, 14), (14, 12)]
-    # print(display_path(path_pos, map_arr))
-
-    # # Start A* Pathfinder
-    # for row in grid:
-    #     for node in row:
-    #         node.update_neighbours(grid)
-    # astar_algorithm(start, dest, grid)
-
+    # Start A* Pathfinder
     for row in grid:
         for node in row:
-            print(node.state)
+            node.update_neighbours(grid)
+    astar_algorithm(start, dest, grid)
+
+    path_pos = []
+    for row in grid:
+        for node in row:
+            if node.state == 'path':
+                path_pos.append(node.pos)
+    pth = display_path(path_pos, map_arr)
+    print(*pth, sep='\n')
 
 
-map1 = [
-    '    //    D     //  ',
-    '   ///         ///  ',
-    '       ///          ',
-    '               /////',
-    '    /////   ///     ',
-    '         ///////////',
-    '                    ',
-    '/////   ////   //// ',
-    '                    ',
-    '            //////  ',
-    '    ///     ///     ',
-    ' //////             ',
-    '            /////   ',
-    '  //////    ///     ',
-    '        ////        ',
-    '                    ',
-    '//////////      ////',
-    '             ///////',
-    '   //////           ',
-    '           S        ']
+map1 = ['    //    D     //  ',
+        '   ///         ///  ',
+        '       ///          ',
+        '               /////',
+        '    /////   ///     ',
+        '         ///////////',
+        '                    ',
+        '/////   ////   //// ',
+        '                    ',
+        '            //////  ',
+        '    ///     ///     ',
+        ' //////             ',
+        '            /////   ',
+        '  //////    ///     ',
+        '        ////        ',
+        '                    ',
+        '//////////      ////',
+        '             ///////',
+        '   //////           ',
+        '           S        ']
 
 if __name__ == '__main__':
     main(map1)
