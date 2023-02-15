@@ -79,8 +79,8 @@ def rec_path(came_from, curr, draw):
 def astar_algorithm(draw, grid, start, end):
     cnt, came_from, open_set = 0, {}, PriorityQueue()
     open_set.put((0, cnt, start))
-    g_score = {node: float('inf') for row in grid for node in row}  # all -> ♾️
-    f_score = {node: float('inf') for row in grid for node in row}  # all -> ♾️
+    g_score = {node: float('inf') for row in grid for node in row}  # all → ♾️
+    f_score = {node: float('inf') for row in grid for node in row}  # all → ♾️
     g_score[start] = 0
     f_score[start] = H(start.get_pos(), end.get_pos())
     open_set_hash = {start}
