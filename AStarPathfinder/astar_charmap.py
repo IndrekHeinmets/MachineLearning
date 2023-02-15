@@ -129,6 +129,7 @@ def display_path(path_pos, map_arr):
                 map_arr[i][j] = '*'
     for c, row in enumerate(map_arr):
         map_arr[c] = ''.join(row)
+    print(*map_arr, sep='\n')
     return map_arr
 
 
@@ -147,20 +148,16 @@ def main(map):
                 node.make_destination()
             elif any(node.pos == pos for pos in barrier_pos):
                 node.make_barrier()
-
-    # Start A* Pathfinder
     for row in grid:
         for node in row:
             node.update_neighbours(grid)
-    astar_algorithm(start, dest, grid)
-
+    astar_algorithm(start, dest, grid) # Start A* Algorithm
     path_pos = []
     for row in grid:
         for node in row:
             if node.state == 'path':
                 path_pos.append(node.pos)
-    pth = display_path(path_pos, map_arr)
-    print(*pth, sep='\n')
+    display_path(path_pos, map_arr)
 
 
 map1 = ['    //    D     //  ',

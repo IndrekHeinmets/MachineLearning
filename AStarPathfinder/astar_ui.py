@@ -181,7 +181,7 @@ def main(win, width):
                 elif node == end:
                     end = None
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE and start and end:  # Start A*
+                if event.key == pygame.K_SPACE and start and end:  # Start A* Algorithm
                     for row in grid:
                         for node in row:
                             node.update_neighbours(grid)
