@@ -127,36 +127,35 @@ def display_path(map_arr, grid):
                 map_arr[i][j] = '*'
     for c, row in enumerate(map_arr):
         map_arr[c] = ''.join(row)
-    print(f'\nShortest Path from Start → Destination:\n', *map_arr, sep='\n')
+    print(f'\nShortest Path from S → D:\n', *map_arr, sep='\n')
 
 
 def read_map(map_path):
     with open(map_path, 'r') as mf:
-        return [line.strip('\n') for line in mf]
+        return [line.strip('\n').strip("'") for line in mf]
 
 
-def main():
-    map_arr = map_to_array(read_map('char_maps/map1.txt'))
-    print(map_arr)
-    # rows, cols = len(map_arr), len(map_arr[0])
-    # grid = make_grid(rows, cols)
-    # start_pos, destination_pos, barrier_pos = get_SDB_pos(map_arr)
-    # for row in grid:
-    #     for node in row:
-    #         if node.pos == start_pos:
-    #             start = node
-    #             node.make_start()
-    #         elif node.pos == destination_pos:
-    #             dest = node
-    #             node.make_destination()
-    #         elif any(node.pos == pos for pos in barrier_pos):
-    #             node.make_barrier()
-    # for row in grid:
-    #     for node in row:
-    #         node.update_neighbours(grid)
-    # astar_algorithm(start, dest, grid)  # Start A* Algorithm
-    # display_path(map_arr, grid)
+def main(map_ver):
+    map_arr = map_to_array(read_map(f'CharMaps/map{str(map_ver)}.txt'))
+    rows, cols = len(map_arr), len(map_arr[0])
+    grid = make_grid(rows, cols)
+    start_pos, destination_pos, barrier_pos = get_SDB_pos(map_arr)
+    for row in grid:
+        for node in row:
+            if node.pos == start_pos:
+                start = node
+                node.make_start()
+            elif node.pos == destination_pos:
+                dest = node
+                node.make_destination()
+            elif any(node.pos == pos for pos in barrier_pos):
+                node.make_barrier()
+    for row in grid:
+        for node in row:
+            node.update_neighbours(grid)
+    astar_algorithm(start, dest, grid)  # Start A* Algorithm
+    display_path(map_arr, grid)
 
 
 if __name__ == '__main__':
-        main()
+        main(input('\n === Enter Map Version: '))
