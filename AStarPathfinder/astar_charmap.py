@@ -127,7 +127,7 @@ def display_path(map_arr, grid):
                 map_arr[i][j] = '*'
     for c, row in enumerate(map_arr):
         map_arr[c] = ''.join(row)
-    print('\n', *map_arr, sep='\n')
+    print(f'\nShortest Path from Start → Destination:\n', *map_arr, sep='\n')
 
 
 def main(map):
