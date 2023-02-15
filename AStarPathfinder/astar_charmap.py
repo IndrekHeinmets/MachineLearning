@@ -158,4 +158,5 @@ def main(map_ver):
 
 
 if __name__ == '__main__':
-        main(input('\n === Enter Map Version: '))
+        # main(input('\n === Enter Map Version: '))
+        main(1)
