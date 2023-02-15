@@ -136,7 +136,7 @@ def read_map(map_path):
 
 
 def main():
-    map_arr = map_to_array(read_map('CharMaps/map1.txt'))
+    map_arr = map_to_array(read_map('char_maps/map1.txt'))
     print(map_arr)
     # rows, cols = len(map_arr), len(map_arr[0])
     # grid = make_grid(rows, cols)
