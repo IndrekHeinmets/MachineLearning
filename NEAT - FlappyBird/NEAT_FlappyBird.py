@@ -1,7 +1,7 @@
-import random
+import pickle
 import pygame
+import random
 import neat
-import time
 import os
 pygame.font.init()
 
@@ -14,7 +14,7 @@ GEN = 0
 HIGH_SCORE = 0
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
-MAX_GENERATIONS = 500
+MAX_GENERATIONS =3
 DRAW_LINES = True
 STAT_FONT = pygame.font.SysFont("ariel", 40)
 
@@ -109,7 +109,7 @@ class Bird:
 
 class Pipe():
     MIN_HEIGHT, MAX_HEIGHT = 50, 450
-    MIN_GAP, MAX_GAP = 150, 250
+    MIN_GAP, MAX_GAP = 200, 250
 
     def __init__(self, x):
         self.x = x
@@ -175,6 +175,11 @@ class Base():
         win.blit(self.IMG, (self.x2, self.y))
 
 
+def save_obj(obj, filename):
+    with open(filename, 'wb') as f:
+        pickle.dump(obj, f)
+
+
 def draw_win(win, birds, pipes, base, score, gen, pipe_i):
     win.blit(BG_IMG, (0, 0))
 
@@ -220,7 +225,6 @@ def fitness(genomes, config):
         birds.append(Bird(START_X, START_Y))
         gens.append(gen)
         nets.append(neat.nn.FeedForwardNetwork.create(gen, config))
-
 
     base = Base(FLOOR)
     pipes = [Pipe(PIPE_SPAWN_LOC)]
@@ -303,8 +307,10 @@ def run_neat(config_path):
     pop.add_reporter(neat.StdOutReporter(True))
     pop.add_reporter(neat.StatisticsReporter())
 
-    winner = pop.run(fitness, MAX_GENERATIONS)
-    print(winner)
+    best_genome = pop.run(fitness, MAX_GENERATIONS)
+    print(f'\nBest genome:\n{best_genome}')
+
+    save_obj(best_genome, 'best.genome')
 
 
 if __name__ == '__main__':
