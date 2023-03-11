@@ -5,17 +5,18 @@ import neat
 import os
 pygame.font.init()
 
+MAX_GENERATIONS = 3
+MODE = 'play' # train (train NEAT nn & save best), test (train NEAT nn), run (run existing genome), play (play with manual keboard input)
+DRAW_LINES = True
 WIN_WIDTH = 500
 WIN_HEIGHT = 800
-WORLD_VEL, WORLD_ACC = 5, 0.05
+WORLD_VEL, WORLD_ACC = 5, 0.1
 FLOOR = 730
 FPS = 30
 GEN = 0
 HIGH_SCORE = 0
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
-MAX_GENERATIONS =3
-DRAW_LINES = True
 STAT_FONT = pygame.font.SysFont("ariel", 40)
 
 # Window setup:
@@ -192,11 +193,12 @@ def draw_win(win, birds, pipes, base, score, gen, pipe_i):
     text = STAT_FONT.render(f'High Score: {str(HIGH_SCORE)}', 1, WHITE)
     win.blit(text, (WIN_WIDTH - 5 - text.get_width(), 35))
 
-    text = STAT_FONT.render(f'Gen: {str(gen)}', 1, WHITE)
-    win.blit(text, (5, 5))
+    if MODE == 'train' or MODE == 'test':
+        text = STAT_FONT.render(f'Gen: {str(gen)}', 1, WHITE)
+        win.blit(text, (5, 5))
 
-    text = STAT_FONT.render(f'Alive: {str(len(birds))}', 1, WHITE)
-    win.blit(text, (5, 35))
+        text = STAT_FONT.render(f'Alive: {str(len(birds))}', 1, WHITE)
+        win.blit(text, (5, 35))
 
     base.draw(win)
 
@@ -298,22 +300,91 @@ def fitness(genomes, config):
         draw_win(WIN, birds, pipes, base, score, GEN, pipe_i)
 
 
+def manual_play():
+    global WORLD_VEL, WORLD_ACC, HIGH_SCORE, DRAW_LINES
+    START_X, START_Y = 230, 350
+    PIPE_SPAWN_LOC = 650
+    DRAW_LINES = False
+    score = 0
+    birds = [Bird(START_X, START_Y)]
+    base = Base(FLOOR)
+    pipes = [Pipe(PIPE_SPAWN_LOC)]
+    clock = pygame.time.Clock()
+    
+    run = True
+    while run:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    bird.jump()
+
+        for bird in birds:            
+            bird.move()
+
+        add_pipe = False
+        rem_pipes, pipe_i = [], 0
+        for pipe in pipes:
+            for bird in birds:
+                if pipe.collide(bird):
+                    break
+                if not pipe.passed and pipe.x < bird.x:
+                    pipe.passed = True
+                    add_pipe = True
+                if pipe.x + pipe.TOP_PIPE_IMG.get_width() < 0:
+                    rem_pipes.append(pipe)
+
+            pipe.move()
+    
+        if add_pipe:
+            score += 1
+            WORLD_VEL += WORLD_ACC
+            pipes.append(Pipe(PIPE_SPAWN_LOC))
+
+        for rp in rem_pipes:
+            pipes.remove(rp)
+
+        for bird in birds:
+            if bird.y + bird.img.get_height() >= FLOOR or bird.y < 0:
+                break
+        
+        if score > HIGH_SCORE:
+            HIGH_SCORE = score
+
+        base.move()
+        draw_win(WIN, birds, pipes, base, score, GEN, pipe_i)
+
+
 def run_neat(config_path):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
     
     pop = neat.Population(config)
-
     pop.add_reporter(neat.StdOutReporter(True))
     pop.add_reporter(neat.StatisticsReporter())
 
-    best_genome = pop.run(fitness, MAX_GENERATIONS)
-    print(f'\nBest genome:\n{best_genome}')
+    if MODE == 'train':
+        best_genome = pop.run(fitness, MAX_GENERATIONS)
+        save_obj(best_genome, 'best.genome')
+        print(f'\nBest genome:\n{best_genome}')
+    elif MODE == 'test':
+        pop.run(fitness, MAX_GENERATIONS)
 
-    save_obj(best_genome, 'best.genome')
+
+def main(config_path):
+    if MODE == 'train' or MODE == 'test':
+        run_neat(config_path)
+    elif MODE == 'run':
+        pass
+    elif MODE == 'play':
+        manual_play()
 
 
 if __name__ == '__main__':
     loc_dir = os.path.dirname(__file__)
     config_path = os.path.join(loc_dir, 'NEAT_configs', 'config-feedforward.txt')
-    run_neat(config_path)
+    main(config_path)
