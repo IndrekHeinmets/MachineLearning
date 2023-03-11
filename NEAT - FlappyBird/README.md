@@ -8,10 +8,10 @@
  * Set maximum number of generations before terminating `MAX_GENERATIONS`.
  * Set `MODE` to change game behaviour:
     * `MODE = 'train'` → Train NEAT Networks & save best genome.
+    * `MODE = 'restore_train'` → Restore training from a checkpoint (must add a existing checkpoint nr on line 480).
     * `MODE = 'test'` → Train NEAT Networks.
     * `MODE = 'run'` → Run a saved genome from file.
     * `MODE = 'play'` → Play game with manual keyboard input.
-    * `MODE = 'restore_train'` → Restore training from a checkpoint (must add a existing checkpoint nr on line 480).
  * Set `DRAW_LINES` to visualize NN's view of the pipes (off automatically in `run` & `play` configurations).
 
  # Configuring NEAT:
