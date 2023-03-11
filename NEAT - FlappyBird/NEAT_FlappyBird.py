@@ -7,7 +7,8 @@ pygame.font.init()
 
 WIN_WIDTH = 500
 WIN_HEIGHT = 800
-WORLD_VEL, WORLD_ACC = 5, 0.1
+BASE_WORLD_VEL = 5
+WORLD_VEL, WORLD_ACC = BASE_WORLD_VEL, 0.1
 FLOOR = 730
 FPS = 30
 GEN = 0
@@ -197,22 +198,17 @@ def draw_win(win, birds, pipes, base, score, gen, pipe_i):
     for pipe in pipes:
         pipe.draw(win)
 
-    if score < HIGH_SCORE or HIGH_SCORE == 0:
-        hs_color = BLACK
-    else:
-        hs_color = GREEN
-
     text = FONT.render(f'Score: {str(score)}', 1, BLACK)
     win.blit(text, (WIN_WIDTH - 5 - text.get_width(), 5))
 
-    text = FONT.render(f'High Score: {str(HIGH_SCORE)}', 1, hs_color)
+    text = FONT.render(f'High Score: {str(HIGH_SCORE)}', 1, BLACK if score < HIGH_SCORE or HIGH_SCORE == 0 else GREEN)
     win.blit(text, (WIN_WIDTH - 5 - text.get_width(), 35))
 
     if MODE == 'train' or MODE == 'test':
-        text = FONT.render(f'Gen: {str(gen)}', 1, BLACK)
+        text = FONT.render(f'Gen: {str(gen)}:{MAX_GENERATIONS}', 1, BLACK)
         win.blit(text, (5, 5))
 
-        text = FONT.render(f'Alive: {str(len(birds))}', 1, BLACK)
+        text = FONT.render(f'Alive: {str(len(birds))}', 1, BLACK if len(birds) > 5 else RED)
         win.blit(text, (5, 35))
 
     base.draw(win)
@@ -235,7 +231,7 @@ def fitness(genomes, config):
     GEN += 1
     START_X, START_Y = 230, 350
     PIPE_SPAWN_LOC = 650
-    birds, score = [], 0
+    birds, score, WORLD_VEL = [], 0, BASE_WORLD_VEL
 
     for _, gen in genomes:
         gen.fitness = 0
@@ -279,7 +275,7 @@ def fitness(genomes, config):
                     bird.gen.fitness -= 1
                     birds.pop(c)
 
-                if not pipe.passed and pipe.x < bird.x:
+                if not pipe.passed and (pipe.x + (pipe.TOP_PIPE_IMG.get_width() / 2)) < bird.x:
                     pipe.passed = True
                     add_pipe = True
 
@@ -315,7 +311,7 @@ def run_gen(config_path, best_gen_path):
     PIPE_SPAWN_LOC = 650
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
-    birds, score = [], 0
+    birds, score, WORLD_VEL = [], 0, BASE_WORLD_VEL
     _, gen = load_gen(best_gen_path)
     birds.append(Bird(START_X, START_Y, gen, neat.nn.FeedForwardNetwork.create(gen, config)))
     base = Base(FLOOR)
