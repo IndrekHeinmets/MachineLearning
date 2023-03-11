@@ -19,9 +19,9 @@ BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
-MAX_GENERATIONS = 100
-MODE = 'run'  # train (train NEAT nn & save best), test (train NEAT nn), run (run existing genome), play (play with manual keboard input)
-DRAW_LINES = True
+MAX_GENERATIONS = 2
+MODE = 'restore_train'  # 'train'-(train NEAT nn & save best), 'restore_train'-(restore training from a checkpoint), 'test'-(train NEAT nn), 'run'-(run existing genome), 'play'-(play with manual keboard input)
+DRAW_LINES = False
 FONT_SIZE = 35
 FONT = pygame.font.SysFont("ariel", FONT_SIZE)
 
@@ -205,7 +205,7 @@ def draw_win(win, birds, pipes, base, score, gen, pipe_i):
     text = FONT.render(f'High Score: {str(HIGH_SCORE)}', 1, BLACK if score < HIGH_SCORE or HIGH_SCORE == 0 else GREEN)
     win.blit(text, (WIN_WIDTH - 5 - text.get_width(), FONT_SIZE))
 
-    if MODE == 'train' or MODE == 'test':
+    if MODE == 'train' or MODE == 'test' or MODE == 'restore_train':
         text = FONT.render(f'Gen: {str(gen)}:{MAX_GENERATIONS}', 1, BLACK)
         win.blit(text, (5, 5))
 
@@ -450,25 +450,36 @@ def manual_play():
         draw_win(WIN, birds, pipes, base, score, GEN, pipe_i)
 
 
-def run_neat(config_path):
+def run_neat(config_path, cp_rc=False, restore=False, cp_n=None):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
-    pop = neat.Population(config)
+    if restore:
+        pop = neat.Checkpointer.restore_checkpoint(os.path.join(f'checkpoints', f'cp-{cp_n}'))
+    else:
+        pop = neat.Population(config)
+
     pop.add_reporter(neat.StdOutReporter(True))
     pop.add_reporter(neat.StatisticsReporter())
 
-    if MODE == 'train':
+    if cp_rc:
+        checkpoint_frequency = 10
+        pop.add_reporter(neat.Checkpointer(checkpoint_frequency, filename_prefix=os.path.join('checkpoints', 'cp-')))
+
+    if MODE == 'train' or MODE == 'restore_train':
         best_genome = pop.run(fitness, MAX_GENERATIONS)
-        save_gen(best_genome, 'best.genome')
+        save_gen(best_genome, best_gen_path)
         print(f'\nBest genome:\n{best_genome}')
     elif MODE == 'test':
         pop.run(fitness, MAX_GENERATIONS)
 
 
 def main(config_path, best_gen_path):
-    if MODE == 'train' or MODE == 'test':
-        run_neat(config_path)
+    if MODE == 'train' or MODE == 'test' or MODE == 'restore_train':
+        if MODE == 'restore_train':
+            run_neat(config_path, cp_rc=True, restore=True, cp_n=18)
+        else:
+            run_neat(config_path, cp_rc=False, restore=False, cp_n=None)
     elif MODE == 'run':
         run_gen(config_path, best_gen_path)
     elif MODE == 'play':

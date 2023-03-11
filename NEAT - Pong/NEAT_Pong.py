@@ -2,7 +2,6 @@ from Game import Game
 import pickle
 import pygame
 import neat
-import time
 import os
 pygame.font.init()
 
@@ -53,3 +52,32 @@ class Pong:
             pygame.display.update()
 
 pygame.quit()
+
+
+def run_neat(config_path):
+    checkpoint_frequency = 10
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
+
+    # pop = neat.Checkpointer.restore_checkpoint(os.path.join('checkpoints', 'cp-2'))
+    pop = neat.Population(config)
+    pop.add_reporter(neat.StdOutReporter(True))
+    pop.add_reporter(neat.StatisticsReporter())
+    pop.add_reporter(neat.Checkpointer(checkpoint_frequency, filename_prefix=os.path.join('checkpoints', 'cp-')))
+
+
+
+    # if MODE == 'train':
+    #     best_genome = pop.run(fitness, MAX_GENERATIONS)
+    #     save_gen(best_genome, 'best.genome')
+    #     print(f'\nBest genome:\n{best_genome}')
+    # elif MODE == 'test':
+    #     pop.run(fitness, MAX_GENERATIONS)
+
+
+if __name__ == "__main__":
+    loc_dir = os.path.dirname(__file__)
+    config_path = os.path.join(loc_dir, 'config-feedforward.txt')
+    run_neat(config_path)
+
+    
