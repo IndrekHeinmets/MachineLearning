@@ -5,11 +5,12 @@ import neat
 import os
 pygame.font.init()
 
-WIN_WIDTH = 500
-WIN_HEIGHT = 800
+AR = 5 / 8
+WIN_HEIGHT = 900
+WIN_WIDTH = round(WIN_HEIGHT * AR)
 BASE_WORLD_VEL = 5
 WORLD_VEL, WORLD_ACC = BASE_WORLD_VEL, 0.1
-FLOOR = 730
+FLOOR = WIN_HEIGHT - 70
 FPS = 45
 GEN = 0
 HIGH_SCORE = 0
@@ -18,7 +19,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
 MAX_GENERATIONS = 100
-MODE = 'train' # train (train NEAT nn & save best), test (train NEAT nn), run (run existing genome), play (play with manual keboard input)
+MODE = 'train'  # train (train NEAT nn & save best), test (train NEAT nn), run (run existing genome), play (play with manual keboard input)
 DRAW_LINES = True
 FONT = pygame.font.SysFont("ariel", 40)
 
@@ -28,14 +29,14 @@ pygame.display.set_caption("NEAT - FlappyBird")
 pygame.display.set_icon(pygame.image.load(os.path.join("assets", "icon.ico")))
 
 # Load images:
-bg_color = 'd' # d = day, n = night
+bg_color = 'd'  # d = day, n = night
 BG_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", f"bg_{bg_color}.png")))
 BASE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", "base.png")))
 
-bird_color = 'b' # r = red, y = yellow, b = blue
+bird_color = 'b'  # r = red, y = yellow, b = blue
 BIRD_IMGS = [pygame.transform.scale2x(pygame.image.load(os.path.join("assets", f"{pos}flap_{bird_color}.png"))) for pos in ['up', 'mid', 'down']]
 
-pipe_color = 'g' # g = green, r = red
+pipe_color = 'g'  # g = green, r = red
 PIPE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", f"pipe_{pipe_color}.png")))
 
 
@@ -66,7 +67,7 @@ class Bird:
     def move(self):
         self.tick_c += 1
         dy = (self.vel * self.tick_c) + (1.5 * self.tick_c**2)
-        
+
         if dy >= self.MAX_VEL:
             dy = self.MAX_VEL
         if dy < 0:
@@ -80,7 +81,7 @@ class Bird:
         else:
             if self.tilt > -90:
                 self.tilt -= self.ROT_VEL
-    
+
     def draw(self, win):
         self.wing_pos += 1
 
@@ -106,7 +107,7 @@ class Bird:
         rotated_img = pygame.transform.rotate(self.img, self.tilt)
         new_rect = rotated_img.get_rect(center=self.img.get_rect(topleft=(self.x, self.y)).center)
         win.blit(rotated_img, new_rect.topleft)
-    
+
     def get_mask(self):
         return pygame.mask.from_surface(self.img)
 
@@ -182,7 +183,7 @@ class Base():
 def save_gen(gen, file_path):
     with open(file_path, 'wb') as f:
         pickle.dump(gen, f)
-        
+
 
 def load_gen(filename):
     with open(filename, 'rb') as f:
@@ -211,13 +212,13 @@ def draw_win(win, birds, pipes, base, score, gen, pipe_i):
 
     base.draw(win)
 
-    for bird in birds:        
+    for bird in birds:
         if DRAW_LINES:
             try:
                 pygame.draw.line(win, RED, (bird.x + bird.img.get_width() / 2, bird.y + bird.img.get_height() / 2),
-                                (pipes[pipe_i].x + pipes[pipe_i].TOP_PIPE_IMG.get_width() / 2, pipes[pipe_i].height), 4)
+                                 (pipes[pipe_i].x + pipes[pipe_i].TOP_PIPE_IMG.get_width() / 2, pipes[pipe_i].height), 4)
                 pygame.draw.line(win, RED, (bird.x + bird.img.get_width() / 2, bird.y + bird.img.get_height() / 2),
-                                (pipes[pipe_i].x + pipes[pipe_i].BOTTOM_PIPE_IMG.get_width() / 2, pipes[pipe_i].bottom), 4)
+                                 (pipes[pipe_i].x + pipes[pipe_i].BOTTOM_PIPE_IMG.get_width() / 2, pipes[pipe_i].bottom), 4)
             except IndexError:
                 continue
         bird.draw(win)
@@ -238,7 +239,7 @@ def fitness(genomes, config):
     base = Base(FLOOR)
     pipes = [Pipe(PIPE_SPAWN_LOC)]
     clock = pygame.time.Clock()
-    
+
     run = True
     while run:
         clock.tick(FPS)
@@ -281,7 +282,7 @@ def fitness(genomes, config):
                 rem_pipes.append(pipe)
 
             pipe.move()
-    
+
         if add_pipe:
             score += 1
             WORLD_VEL += WORLD_ACC
@@ -315,7 +316,7 @@ def run_gen(config_path, best_gen_path):
     base = Base(FLOOR)
     pipes = [Pipe(PIPE_SPAWN_LOC)]
     clock = pygame.time.Clock()
-    
+
     run = True
     while run:
         clock.tick(FPS)
@@ -358,7 +359,7 @@ def run_gen(config_path, best_gen_path):
                 rem_pipes.append(pipe)
 
             pipe.move()
-    
+
         if add_pipe:
             score += 1
             WORLD_VEL += WORLD_ACC
@@ -380,7 +381,6 @@ def run_gen(config_path, best_gen_path):
         draw_win(WIN, birds, pipes, base, score, GEN, pipe_i)
 
 
-
 def manual_play():
     global WORLD_VEL, WORLD_ACC, HIGH_SCORE, DRAW_LINES
     START_X, START_Y = 230, 350
@@ -391,7 +391,7 @@ def manual_play():
     base = Base(FLOOR)
     pipes = [Pipe(PIPE_SPAWN_LOC)]
     clock = pygame.time.Clock()
-    
+
     run = True
     while run:
         clock.tick(FPS)
@@ -404,7 +404,7 @@ def manual_play():
                 if event.key == pygame.K_SPACE:
                     bird.jump()
 
-        for bird in birds:            
+        for bird in birds:
             bird.move()
 
         add_pipe = False
@@ -421,7 +421,7 @@ def manual_play():
                     rem_pipes.append(pipe)
 
             pipe.move()
-    
+
         if add_pipe:
             score += 1
             WORLD_VEL += WORLD_ACC
@@ -434,7 +434,7 @@ def manual_play():
             if bird.y + bird.img.get_height() >= FLOOR or bird.y < 0:
                 run = False
                 break
-        
+
         if score > HIGH_SCORE:
             HIGH_SCORE = score
 
@@ -445,7 +445,7 @@ def manual_play():
 def run_neat(config_path):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
-    
+
     pop = neat.Population(config)
     pop.add_reporter(neat.StdOutReporter(True))
     pop.add_reporter(neat.StatisticsReporter())
