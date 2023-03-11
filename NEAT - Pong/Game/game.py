@@ -21,7 +21,8 @@ class Game:
     Use the information returned from .loop() to determine when to end the game by calling
     .reset().
     """
-    SCORE_FONT = pygame.font.SysFont("ariel", 35)
+    FONT_SIZE = 40
+    FONT = pygame.font.SysFont("ariel", FONT_SIZE)
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
     RED = (255, 0, 0)
@@ -30,10 +31,8 @@ class Game:
         self.window_width = window_width
         self.window_height = window_height
 
-        self.left_paddle = Paddle(
-            10, self.window_height // 2 - Paddle.HEIGHT // 2)
-        self.right_paddle = Paddle(
-            self.window_width - 10 - Paddle.WIDTH, self.window_height // 2 - Paddle.HEIGHT//2)
+        self.left_paddle = Paddle(10, self.window_height // 2 - Paddle.HEIGHT // 2)
+        self.right_paddle = Paddle(self.window_width - 10 - Paddle.WIDTH, self.window_height // 2 - Paddle.HEIGHT//2)
         self.ball = Ball(self.window_width // 2, self.window_height // 2)
 
         self.left_score = 0
@@ -43,27 +42,25 @@ class Game:
         self.window = window
 
     def _draw_score(self):
-        left_score_text = self.SCORE_FONT.render(
-            f"{self.left_score}", 1, self.WHITE)
-        right_score_text = self.SCORE_FONT.render(
-            f"{self.right_score}", 1, self.WHITE)
-        self.window.blit(left_score_text, (self.window_width //
-                                           4 - left_score_text.get_width()//2, 20))
-        self.window.blit(right_score_text, (self.window_width * (3/4) -
-                                            right_score_text.get_width()//2, 20))
+        left_score_text = self.FONT.render(f"{self.left_score}", 1, self.WHITE)
+        right_score_text = self.FONT.render(f"{self.right_score}", 1, self.WHITE)
+        self.window.blit(left_score_text, (self.window_width // 4 - left_score_text.get_width()//2, 20))
+        self.window.blit(right_score_text, (self.window_width * (3/4) - right_score_text.get_width()//2, 20))
 
     def _draw_hits(self):
-        hits_text = self.SCORE_FONT.render(
-            f"{self.left_hits + self.right_hits}", 1, self.RED)
-        self.window.blit(hits_text, (self.window_width //
-                                     2 - hits_text.get_width()//2, 10))
+        hits_text = self.FONT.render(f"{self.left_hits + self.right_hits}", 1, self.RED)
+        self.window.blit(hits_text, (self.window_width - hits_text.get_width() - 15, self.window_height - self.FONT_SIZE + 2))
 
-    def _draw_divider(self):
-        for i in range(10, self.window_height, self.window_height//20):
+    def _draw_divider(self, window_size, aspect_ratio):
+        divider_height = window_size[1] // 28
+        rect_width = 5 * aspect_ratio
+        rect_height = divider_height * aspect_ratio
+        for i in range(10, window_size[1], divider_height):
             if i % 2 == 1:
                 continue
-            pygame.draw.rect(
-                self.window, self.WHITE, (self.window_width//2 - 5, i, 10, self.window_height//20))
+            rect_y = i * aspect_ratio
+            pygame.draw.rect(self.window, self.WHITE, (window_size[0]//2 - rect_width//2, rect_y, rect_width, rect_height))
+
 
     def _handle_collision(self):
         ball = self.ball
@@ -102,7 +99,7 @@ class Game:
     def draw(self, draw_score=True, draw_hits=False):
         self.window.fill(self.BLACK)
 
-        self._draw_divider()
+        self._draw_divider((self.window_width, self.window_height), (self.window_width / self.window_height))
 
         if draw_score:
             self._draw_score()

@@ -1,16 +1,18 @@
 import pygame
 import math
 import random
+import os
 
 
 class Ball:
     MAX_VEL = 5
     RADIUS = 7
+    IMG = pygame.image.load(os.path.join("assets", "ball.png"))
 
     def __init__(self, x, y):
         self.x = self.original_x = x
         self.y = self.original_y = y
-        
+        self.img = self.IMG
         angle = self._get_random_angle(-30, 30, [0])
         pos = 1 if random.random() < 0.5 else -1
 
@@ -25,7 +27,8 @@ class Ball:
         return angle
 
     def draw(self, win):
-        pygame.draw.circle(win, (255, 255, 255), (self.x, self.y), self.RADIUS)
+        rect = self.img.get_rect(center=self.img.get_rect(topleft=(self.x, self.y)).center)
+        win.blit(self.img, rect.topleft)
 
     def move(self):
         self.x += self.x_vel
