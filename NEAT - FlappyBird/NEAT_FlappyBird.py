@@ -20,7 +20,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
 MAX_GENERATIONS = 100
-MODE = 'train'  # train (train NEAT nn & save best), test (train NEAT nn), run (run existing genome), play (play with manual keboard input)
+MODE = 'run'  # train (train NEAT nn & save best), test (train NEAT nn), run (run existing genome), play (play with manual keboard input)
 DRAW_LINES = True
 FONT_SIZE = 35
 FONT = pygame.font.SysFont("ariel", FONT_SIZE)
@@ -346,7 +346,6 @@ def run_gen(config_path, best_gen_path):
 
         for bird in birds:
             bird.move()
-            bird.gen.fitness += 0.1
 
             net_out = bird.net.activate((bird.y, abs(bird.y - pipes[pipe_i].height), abs(bird.y - pipes[pipe_i].bottom)))
 
@@ -356,12 +355,12 @@ def run_gen(config_path, best_gen_path):
         add_pipe = False
         rem_pipes = []
         for pipe in pipes:
-            for c, bird in enumerate(birds):
+            for bird in birds:
                 if pipe.collide(bird):
-                    bird.gen.fitness -= 1
-                    birds.pop(c)
+                    run = False
+                    break
 
-                if not pipe.passed and pipe.x < bird.x:
+                if not pipe.passed and (pipe.x + (pipe.TOP_PIPE_IMG.get_width() / 2)) < bird.x:
                     pipe.passed = True
                     add_pipe = True
 
@@ -373,8 +372,6 @@ def run_gen(config_path, best_gen_path):
         if add_pipe:
             score += 1
             WORLD_VEL += WORLD_ACC
-            for bird in birds:
-                bird.gen.fitness += 5
             pipes.append(Pipe(PIPE_SPAWN_LOC))
 
         for rp in rem_pipes:
@@ -382,7 +379,8 @@ def run_gen(config_path, best_gen_path):
 
         for c, bird in enumerate(birds):
             if bird.y + bird.img.get_height() >= FLOOR or bird.y < 0:
-                birds.pop(c)
+                run = False
+                break
 
         if score > HIGH_SCORE:
             HIGH_SCORE = score    
