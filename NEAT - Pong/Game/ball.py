@@ -5,7 +5,7 @@ import os
 
 
 class Ball:
-    MAX_VEL = 8
+    MAX_VEL = 50
     RADIUS = 9
     IMG = pygame.image.load(os.path.join("assets", "ball.png"))
 

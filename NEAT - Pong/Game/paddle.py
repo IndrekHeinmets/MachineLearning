@@ -3,7 +3,7 @@ import os
 
 
 class Paddle:
-    VEL = 6
+    VEL = 45
     WIDTH = 30
     HEIGHT = 100
     IMG = pygame.image.load(os.path.join("assets", "paddle.png"))

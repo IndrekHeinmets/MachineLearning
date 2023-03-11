@@ -4,14 +4,19 @@
  * Create a custom conda virtual environmen: `conda env create -f env_setup\NEAT-venv.yml`.
  * Run game: `NEAT_Pong.py`.
 
- <!-- # Configure Game (line: 20-22):
+ # Configure Game (`NEAT_Pong.py` line 13-14):
  * Set maximum number of generations before terminating `MAX_GENERATIONS`.
  * Set `MODE` to change game behaviour:
-    * `MODE = 'train'` → Train NEAT Networks & save best genome.
-    * `MODE = 'test'` → Train NEAT Networks.
-    * `MODE = 'run'` → Run a saved genome from file.
-    * `MODE = 'play'` → Play game with manual keyboard input.
- * Set `DRAW_LINES` to visualize NN's view of the pipes (off automatically in `run` & `play` configurations).
+    * `MODE = 'pp'` → Player vs Player.
+    * `MODE = 'ap'` → AI(left) vs Player(right).
+    * `MODE = 'pa'` → Player(left) vs AI(right).
+    * `MODE = 'aa'` → AI vs AI.
+
+# Player Inputs:
+ * RHS Player Up → `↑`
+ * RHS Player Down → `↓`
+ * LHS Player Up → `w`
+ * LHS Player Down → `s`
 
  # Configuring NEAT:
- * Modify contents of `NEAT-configs\config-feedforward.txt` to your requirements. -->
+ * Modify contents of `NEAT-configs\config-feedforward.txt` to your requirements.

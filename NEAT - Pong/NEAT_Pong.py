@@ -10,6 +10,9 @@ WIN_WIDTH = 1400
 WIN_HEIGHT = round(WIN_WIDTH / AR)
 FPS = 60
 
+MAX_GENERATIONS = 50
+MODE = 'pp' # 'pp'-(player vs player), 'ap'-(ai(LHS) vs player(RHS)), 'pa'-(player(LHS) vs ai(RHS)), 'aa'-(ai vs ai)
+
 # Window setup:
 WIN = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
 pygame.display.set_caption("NEAT - Pong")
@@ -51,7 +54,61 @@ class Pong:
             self.game.draw(True, True)
             pygame.display.update()
 
-pygame.quit()
+    def train_ai(self, gen1, gen2, config):
+        net1 = neat.nn.FeedForwardNetwork.create(gen1, config)
+        net2 = neat.nn.FeedForwardNetwork.create(gen2, config)
+
+        run = True
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    quit()
+
+            net1_out = net1.activate((self.left_pad.y, self.ball.y, abs(self.left_pad.x - self.ball.x)))
+            decision1 = net1_out.index(max(net1_out))
+
+            if decision1 == 0:
+                pass
+            elif decision1 == 1:
+                self.game.move_paddle(left=True, up=True)
+            else:
+                self.game.move_paddle(left=True, up=False)
+
+            net2_out = net2.activate((self.right_pad.y, self.ball.y, abs(self.right_pad.x - self.ball.x)))
+            decision2 = net2_out.index(max(net2_out))
+
+            if decision2 == 0:
+                pass
+            elif decision2 == 1:
+                self.game.move_paddle(left=False, up=True)
+            else:
+                self.game.move_paddle(left=False, up=False)
+
+            game_info = self.game.loop()
+
+            self.game.draw(draw_score=True, draw_hits=True)
+            pygame.display.update()
+
+            # Stop game as soon as one player misses (reduce training time):
+            if game_info.left_score >= 1 or game_info.right_score >= 1 or game_info.left_hits > 50:
+                self.calc_fitness(gen1, gen2, game_info)
+                break
+
+    def calc_fitness(self, gen1, gen2, game_info):
+        gen1.fitness += game_info.left_hits
+        gen2.fitness += game_info.right_hits
+
+
+def fitness(genomes, config):
+    for c, (_, gen1) in enumerate(genomes):
+        if c == len(genomes) - 1:
+            break
+        gen1.fitness = 0
+        for _, gen2 in genomes[c+1:]:
+            gen2.fitness = 0 if gen2.fitness == None else gen2.fitness
+            pong = Pong(WIN, WIN_WIDTH, WIN_HEIGHT)
+            pong.train_ai(gen1, gen2, config)
+
 
 
 def run_neat(config_path):
@@ -59,25 +116,18 @@ def run_neat(config_path):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
-    # pop = neat.Checkpointer.restore_checkpoint(os.path.join('checkpoints', 'cp-2'))
+    # pop = neat.Checkpointer.restore_checkpoint(os.path.join('checkpoints', 'cp-12'))
     pop = neat.Population(config)
     pop.add_reporter(neat.StdOutReporter(True))
     pop.add_reporter(neat.StatisticsReporter())
     pop.add_reporter(neat.Checkpointer(checkpoint_frequency, filename_prefix=os.path.join('checkpoints', 'cp-')))
 
-
-
-    # if MODE == 'train':
-    #     best_genome = pop.run(fitness, MAX_GENERATIONS)
-    #     save_gen(best_genome, 'best.genome')
-    #     print(f'\nBest genome:\n{best_genome}')
-    # elif MODE == 'test':
-    #     pop.run(fitness, MAX_GENERATIONS)
+    best_genome = pop.run(fitness, MAX_GENERATIONS)
 
 
 if __name__ == "__main__":
     loc_dir = os.path.dirname(__file__)
-    config_path = os.path.join(loc_dir, 'config-feedforward.txt')
+    config_path = os.path.join(loc_dir, 'NEAT_configs', 'config-feedforward.txt')
     run_neat(config_path)
 
     

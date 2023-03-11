@@ -4,7 +4,7 @@
  * Create a custom conda virtual environmen: `conda env create -f env_setup\NEAT-venv.yml`.
  * Run game: `NEAT_FlappyBird.py`.
 
- # Configure Game (line: 20-22):
+ # Configure Game (line 20-22):
  * Set maximum number of generations before terminating `MAX_GENERATIONS`.
  * Set `MODE` to change game behaviour:
     * `MODE = 'train'` → Train NEAT Networks & save best genome.

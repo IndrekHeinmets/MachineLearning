@@ -46,14 +46,13 @@ class Game:
         self.win = win
 
     def _draw_score(self):
-
-        left_score_text = self.FONT.render(f"{self.left_score}", 1, self.GREEN if self.left_score > self.right_score else (self.YELLOW if self.left_score == self.right_score else self.RED))
-        right_score_text = self.FONT.render(f"{self.right_score}", 1, self.GREEN if self.right_score > self.left_score else (self.YELLOW if self.right_score == self.left_score else self.RED))
+        left_score_text = self.FONT.render(f'{self.left_score}', 1, self.GREEN if self.left_score > self.right_score else (self.YELLOW if self.left_score == self.right_score else self.RED))
+        right_score_text = self.FONT.render(f'{self.right_score}', 1, self.GREEN if self.right_score > self.left_score else (self.YELLOW if self.right_score == self.left_score else self.RED))
         self.win.blit(left_score_text, (self.win_width // 4 - left_score_text.get_width() // 2, 10))
         self.win.blit(right_score_text, (self.win_width * (3 / 4) - right_score_text.get_width() // 2, 10))
 
     def _draw_hits(self):
-        hits_text = self.FONT.render(f"{self.left_hits + self.right_hits}", 1, self.WHITE)
+        hits_text = self.FONT.render(f'{self.left_hits + self.right_hits}', 1, self.WHITE)
         self.win.blit(hits_text, (self.win_width - hits_text.get_width() - 15, self.win_height - self.FONT_SIZE + 2))
 
     def _draw_divider(self, win_size, aspect_ratio):

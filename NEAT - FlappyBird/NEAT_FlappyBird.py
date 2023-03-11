@@ -21,7 +21,7 @@ GREEN = (0, 255, 0)
 
 MAX_GENERATIONS = 2
 MODE = 'restore_train'  # 'train'-(train NEAT nn & save best), 'restore_train'-(restore training from a checkpoint), 'test'-(train NEAT nn), 'run'-(run existing genome), 'play'-(play with manual keboard input)
-DRAW_LINES = False
+DRAW_LINES = True
 FONT_SIZE = 35
 FONT = pygame.font.SysFont("ariel", FONT_SIZE)
 
