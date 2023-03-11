@@ -28,6 +28,7 @@ class Game:
     BLACK = (0, 0, 0)
     GREEN = (0, 255, 0)
     RED = (255, 0, 0)
+    YELLOW = (255, 250, 0)
     BG_IMG = pygame.image.load(os.path.join("assets", "bg.png"))
 
     def __init__(self, win, win_width, win_height):
@@ -45,13 +46,14 @@ class Game:
         self.win = win
 
     def _draw_score(self):
-        left_score_text = self.FONT.render(f"{self.left_score}", 1, self.GREEN)
-        right_score_text = self.FONT.render(f"{self.right_score}", 1, self.GREEN)
+
+        left_score_text = self.FONT.render(f"{self.left_score}", 1, self.GREEN if self.left_score > self.right_score else (self.YELLOW if self.left_score == self.right_score else self.RED))
+        right_score_text = self.FONT.render(f"{self.right_score}", 1, self.GREEN if self.right_score > self.left_score else (self.YELLOW if self.right_score == self.left_score else self.RED))
         self.win.blit(left_score_text, (self.win_width // 4 - left_score_text.get_width() // 2, 10))
         self.win.blit(right_score_text, (self.win_width * (3 / 4) - right_score_text.get_width() // 2, 10))
 
     def _draw_hits(self):
-        hits_text = self.FONT.render(f"{self.left_hits + self.right_hits}", 1, self.RED)
+        hits_text = self.FONT.render(f"{self.left_hits + self.right_hits}", 1, self.WHITE)
         self.win.blit(hits_text, (self.win_width - hits_text.get_width() - 15, self.win_height - self.FONT_SIZE + 2))
 
     def _draw_divider(self, win_size, aspect_ratio):
@@ -64,13 +66,12 @@ class Game:
             rect_y = i * aspect_ratio
             pygame.draw.rect(self.win, self.WHITE, (win_size[0] // 2 - rect_width // 2, rect_y, rect_width, rect_height))
 
-
     def _handle_collision(self):
         ball = self.ball
         left_paddle = self.left_paddle
         right_paddle = self.right_paddle
 
-        if ball.y + ball.RADIUS >= self.win_height:
+        if ball.y + ball.RADIUS >= self.win_height - 10:
             ball.y_vel *= -1
         elif ball.y - ball.RADIUS <= 0:
             ball.y_vel *= -1
