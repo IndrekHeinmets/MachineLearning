@@ -14,4 +14,4 @@
  * Set `DRAW_LINES` to visualize NN's view of the pipes (off automatically in `run` & `play` configurations).
 
  # Configuring NEAT:
- * Modify contents of `NEAT-configs\config-feedforward.txt` to your requirements.
+ * Modify contents of `NEAT_configs\config-feedforward.txt` to your requirements.
