@@ -33,9 +33,7 @@ BG_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", f"bg_
 BASE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", "base.png")))
 
 bird_color = 'b' # r = red, y = yellow, b = blue
-BIRD_IMGS = [pygame.transform.scale2x(pygame.image.load(os.path.join("assets", f"upflap_{bird_color}.png"))),
-             pygame.transform.scale2x(pygame.image.load(os.path.join("assets", f"midflap_{bird_color}.png"))),
-             pygame.transform.scale2x(pygame.image.load(os.path.join("assets", f"downflap_{bird_color}.png")))]
+BIRD_IMGS = [pygame.transform.scale2x(pygame.image.load(os.path.join("assets", f"{pos}flap_{bird_color}.png"))) for pos in ['up', 'mid', 'down']]
 
 pipe_color = 'g' # g = green, r = red
 PIPE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", f"pipe_{pipe_color}.png")))
