@@ -5,9 +5,6 @@ import neat
 import os
 pygame.font.init()
 
-MAX_GENERATIONS = 3
-MODE = 'play' # train (train NEAT nn & save best), test (train NEAT nn), run (run existing genome), play (play with manual keboard input)
-DRAW_LINES = True
 WIN_WIDTH = 500
 WIN_HEIGHT = 800
 WORLD_VEL, WORLD_ACC = 5, 0.1
@@ -17,7 +14,11 @@ GEN = 0
 HIGH_SCORE = 0
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
-STAT_FONT = pygame.font.SysFont("ariel", 40)
+
+MAX_GENERATIONS = 3
+MODE = 'test' # train (train NEAT nn & save best), test (train NEAT nn), run (run existing genome), play (play with manual keboard input)
+DRAW_LINES = True
+FONT = pygame.font.SysFont("ariel", 40)
 
 # Window setup:
 WIN = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
@@ -46,7 +47,7 @@ class Bird:
     VEL_BUFFER = 2
     ANIM_TIME = 5
 
-    def __init__(self, x, y,):
+    def __init__(self, x, y):
         self.x = x
         self.y = y
         self.tilt = 0
@@ -176,9 +177,15 @@ class Base():
         win.blit(self.IMG, (self.x2, self.y))
 
 
-def save_obj(obj, filename):
+def save_gen(gen, filename):
     with open(filename, 'wb') as f:
-        pickle.dump(obj, f)
+        pickle.dump(gen, f)
+        
+
+def load_gen(filename):
+    with open(filename, 'rb') as f:
+        bird: Bird = pickle.load(f)
+    return bird
 
 
 def draw_win(win, birds, pipes, base, score, gen, pipe_i):
@@ -187,17 +194,17 @@ def draw_win(win, birds, pipes, base, score, gen, pipe_i):
     for pipe in pipes:
         pipe.draw(win)
 
-    text = STAT_FONT.render(f'Score: {str(score)}', 1, WHITE)
+    text = FONT.render(f'Score: {str(score)}', 1, WHITE)
     win.blit(text, (WIN_WIDTH - 5 - text.get_width(), 5))
 
-    text = STAT_FONT.render(f'High Score: {str(HIGH_SCORE)}', 1, WHITE)
+    text = FONT.render(f'High Score: {str(HIGH_SCORE)}', 1, WHITE)
     win.blit(text, (WIN_WIDTH - 5 - text.get_width(), 35))
 
     if MODE == 'train' or MODE == 'test':
-        text = STAT_FONT.render(f'Gen: {str(gen)}', 1, WHITE)
+        text = FONT.render(f'Gen: {str(gen)}', 1, WHITE)
         win.blit(text, (5, 5))
 
-        text = STAT_FONT.render(f'Alive: {str(len(birds))}', 1, WHITE)
+        text = FONT.render(f'Alive: {str(len(birds))}', 1, WHITE)
         win.blit(text, (5, 35))
 
     base.draw(win)
@@ -300,6 +307,90 @@ def fitness(genomes, config):
         draw_win(WIN, birds, pipes, base, score, GEN, pipe_i)
 
 
+def run_gen(genome, config):
+    global WORLD_VEL, WORLD_ACC, HIGH_SCORE
+    START_X, START_Y = 230, 350
+    PIPE_SPAWN_LOC = 650
+    birds, gens, nets, score = [], [], [], 0
+
+    _, gen = genome
+    birds.append(Bird(START_X, START_Y))
+    gens.append(gen)
+    nets.append(neat.nn.FeedForwardNetwork.create(gen, config))
+
+    base = Base(FLOOR)
+    pipes = [Pipe(PIPE_SPAWN_LOC)]
+    clock = pygame.time.Clock()
+    
+    run = True
+    while run:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                pygame.quit()
+                quit()
+
+        pipe_i = 0
+        if len(birds) > 0:
+            if len(pipes) > 1 and birds[0].x + pipes[0].x + pipes[0].TOP_PIPE_IMG.get_width():
+                pipe_i = 1
+        else:
+            run = False
+            break
+
+        for c, bird in enumerate(birds):
+            bird.move()
+            gens[c].fitness += 0.1
+
+            net_out = nets[c].activate((bird.y, abs(bird.y - pipes[pipe_i].height), abs(bird.y - pipes[pipe_i].bottom)))
+
+            if net_out[0] > 0.5:
+                bird.jump()
+
+        add_pipe = False
+        rem_pipes = []
+        for pipe in pipes:
+            for c, bird in enumerate(birds):
+                if pipe.collide(bird):
+                    gens[c].fitness -= 1
+                    birds.pop(c)
+                    nets.pop(c)
+                    gens.pop(c)
+
+                if not pipe.passed and pipe.x < bird.x:
+                    pipe.passed = True
+                    add_pipe = True
+
+            if pipe.x + pipe.TOP_PIPE_IMG.get_width() < 0:
+                rem_pipes.append(pipe)
+
+            pipe.move()
+    
+        if add_pipe:
+            score += 1
+            WORLD_VEL += WORLD_ACC
+            for gen in gens:
+                gen.fitness += 5
+            pipes.append(Pipe(PIPE_SPAWN_LOC))
+
+        for rp in rem_pipes:
+            pipes.remove(rp)
+
+        for c, bird in enumerate(birds):
+            if bird.y + bird.img.get_height() >= FLOOR or bird.y < 0:
+                birds.pop(c)
+                nets.pop(c)
+                gens.pop(c)
+
+        if score > HIGH_SCORE:
+            HIGH_SCORE = score
+
+        base.move()
+        draw_win(WIN, birds, pipes, base, score, GEN, pipe_i)
+
+
+
 def manual_play():
     global WORLD_VEL, WORLD_ACC, HIGH_SCORE, DRAW_LINES
     START_X, START_Y = 230, 350
@@ -369,17 +460,19 @@ def run_neat(config_path):
 
     if MODE == 'train':
         best_genome = pop.run(fitness, MAX_GENERATIONS)
-        save_obj(best_genome, 'best.genome')
-        print(f'\nBest genome:\n{best_genome}')
+        save_gen(best_genome, 'best.genome')
+        print(f'\nBest genome:\n{best_genome.type}')
     elif MODE == 'test':
         pop.run(fitness, MAX_GENERATIONS)
 
 
-def main(config_path):
+def main(config_path, best_gen_path):
     if MODE == 'train' or MODE == 'test':
         run_neat(config_path)
     elif MODE == 'run':
-        pass
+        gen = load_gen(best_gen_path)
+        print(gen)
+        # run_gen(gen, config_path)
     elif MODE == 'play':
         manual_play()
 
@@ -387,4 +480,5 @@ def main(config_path):
 if __name__ == '__main__':
     loc_dir = os.path.dirname(__file__)
     config_path = os.path.join(loc_dir, 'NEAT_configs', 'config-feedforward.txt')
-    main(config_path)
+    best_gen_path = os.path.join(loc_dir, 'genomes', 'best.genome')
+    main(config_path, best_gen_path)
