@@ -14,6 +14,7 @@ FLOOR = WIN_HEIGHT - 70
 FPS = 45
 GEN = 0
 HIGH_SCORE = 0
+MAX_FIT = 0
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
@@ -21,7 +22,8 @@ GREEN = (0, 255, 0)
 MAX_GENERATIONS = 100
 MODE = 'train'  # train (train NEAT nn & save best), test (train NEAT nn), run (run existing genome), play (play with manual keboard input)
 DRAW_LINES = True
-FONT = pygame.font.SysFont("ariel", 40)
+FONT_SIZE = 35
+FONT = pygame.font.SysFont("ariel", FONT_SIZE)
 
 # Window setup:
 WIN = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
@@ -201,14 +203,18 @@ def draw_win(win, birds, pipes, base, score, gen, pipe_i):
     win.blit(text, (WIN_WIDTH - 5 - text.get_width(), 5))
 
     text = FONT.render(f'High Score: {str(HIGH_SCORE)}', 1, BLACK if score < HIGH_SCORE or HIGH_SCORE == 0 else GREEN)
-    win.blit(text, (WIN_WIDTH - 5 - text.get_width(), 35))
+    win.blit(text, (WIN_WIDTH - 5 - text.get_width(), FONT_SIZE))
 
     if MODE == 'train' or MODE == 'test':
         text = FONT.render(f'Gen: {str(gen)}:{MAX_GENERATIONS}', 1, BLACK)
         win.blit(text, (5, 5))
 
+        if len(birds) > 0:
+            text = FONT.render(f'Fit: {str(round(max([bird.gen.fitness if bird.gen.fitness > MAX_FIT else MAX_FIT for bird in birds]), 1))}', 1, BLACK if any(bird.gen.fitness < MAX_FIT or MAX_FIT == 0 for bird in birds) else GREEN)
+            win.blit(text, (5, FONT_SIZE))
+
         text = FONT.render(f'Alive: {str(len(birds))}', 1, BLACK if len(birds) > 5 else RED)
-        win.blit(text, (5, 35))
+        win.blit(text, (5, (FONT_SIZE * 2) - 5))
 
     base.draw(win)
 
@@ -226,7 +232,7 @@ def draw_win(win, birds, pipes, base, score, gen, pipe_i):
 
 
 def fitness(genomes, config):
-    global GEN, WORLD_VEL, WORLD_ACC, HIGH_SCORE
+    global GEN, WORLD_VEL, WORLD_ACC, HIGH_SCORE, MAX_FIT
     GEN += 1
     START_X, START_Y = 230, 350
     PIPE_SPAWN_LOC = 650
@@ -299,6 +305,10 @@ def fitness(genomes, config):
 
         if score > HIGH_SCORE:
             HIGH_SCORE = score
+
+        for bird in birds:
+            if bird.gen.fitness > MAX_FIT:
+                MAX_FIT = bird.gen.fitness    
 
         base.move()
         draw_win(WIN, birds, pipes, base, score, GEN, pipe_i)
@@ -375,7 +385,7 @@ def run_gen(config_path, best_gen_path):
                 birds.pop(c)
 
         if score > HIGH_SCORE:
-            HIGH_SCORE = score
+            HIGH_SCORE = score    
 
         base.move()
         draw_win(WIN, birds, pipes, base, score, GEN, pipe_i)
