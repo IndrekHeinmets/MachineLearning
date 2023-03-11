@@ -10,14 +10,14 @@ WIN_HEIGHT = 800
 BASE_WORLD_VEL = 5
 WORLD_VEL, WORLD_ACC = BASE_WORLD_VEL, 0.1
 FLOOR = 730
-FPS = 30
+FPS = 45
 GEN = 0
 HIGH_SCORE = 0
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
-MAX_GENERATIONS = 500
+MAX_GENERATIONS = 100
 MODE = 'train' # train (train NEAT nn & save best), test (train NEAT nn), run (run existing genome), play (play with manual keboard input)
 DRAW_LINES = True
 FONT = pygame.font.SysFont("ariel", 40)
@@ -215,9 +215,9 @@ def draw_win(win, birds, pipes, base, score, gen, pipe_i):
         if DRAW_LINES:
             try:
                 pygame.draw.line(win, RED, (bird.x + bird.img.get_width() / 2, bird.y + bird.img.get_height() / 2),
-                                (pipes[pipe_i].x + pipes[pipe_i].TOP_PIPE_IMG.get_width() / 2, pipes[pipe_i].height), 5)
+                                (pipes[pipe_i].x + pipes[pipe_i].TOP_PIPE_IMG.get_width() / 2, pipes[pipe_i].height), 4)
                 pygame.draw.line(win, RED, (bird.x + bird.img.get_width() / 2, bird.y + bird.img.get_height() / 2),
-                                (pipes[pipe_i].x + pipes[pipe_i].BOTTOM_PIPE_IMG.get_width() / 2, pipes[pipe_i].bottom), 5)
+                                (pipes[pipe_i].x + pipes[pipe_i].BOTTOM_PIPE_IMG.get_width() / 2, pipes[pipe_i].bottom), 4)
             except IndexError:
                 continue
         bird.draw(win)

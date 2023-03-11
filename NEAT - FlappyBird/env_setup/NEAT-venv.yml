@@ -1,4 +1,4 @@
-name: NEAT-FP
+name: NEAT-venv
 dependencies:
   - python=3.11
   - pip=22.2.2
