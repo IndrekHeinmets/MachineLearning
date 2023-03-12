@@ -20,7 +20,7 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
 MAX_GENERATIONS = 2
-MODE = 'restore_train'  # 'train'-(train NEAT nn & save best), 'restore_train'-(restore training from a checkpoint), 'test'-(train NEAT nn), 'run'-(run existing genome), 'play'-(play with manual keboard input)
+MODE = 'restore_train'  # 'train'-(train NEAT nn & save best), 'restore_train'-(restore training from a checkpoint), 'run'-(run existing genome), 'play'-(play with manual keboard input)
 DRAW_LINES = True
 FONT_SIZE = 35
 FONT = pygame.font.SysFont("ariel", FONT_SIZE)
@@ -308,7 +308,7 @@ def fitness(genomes, config):
 
         for bird in birds:
             if bird.gen.fitness > MAX_FIT:
-                MAX_FIT = bird.gen.fitness    
+                MAX_FIT = bird.gen.fitness
 
         base.move()
         draw_win(WIN, birds, pipes, base, score, GEN, pipe_i)
@@ -383,7 +383,7 @@ def run_gen(config_path, best_gen_path):
                 break
 
         if score > HIGH_SCORE:
-            HIGH_SCORE = score    
+            HIGH_SCORE = score
 
         base.move()
         draw_win(WIN, birds, pipes, base, score, GEN, pipe_i)
@@ -475,11 +475,10 @@ def run_neat(config_path, cp_rc=False, restore=False, cp_n=None):
 
 
 def main(config_path, best_gen_path):
-    if MODE == 'train' or MODE == 'test' or MODE == 'restore_train':
-        if MODE == 'restore_train':
-            run_neat(config_path, cp_rc=True, restore=True, cp_n=18)
-        else:
-            run_neat(config_path, cp_rc=False, restore=False, cp_n=None)
+    if MODE == 'train':
+        run_neat(config_path, cp_rc=False, restore=False, cp_n=None)
+    elif MODE == 'restore_train':
+        run_neat(config_path, cp_rc=True, restore=True, cp_n=18)
     elif MODE == 'run':
         run_gen(config_path, best_gen_path)
     elif MODE == 'play':

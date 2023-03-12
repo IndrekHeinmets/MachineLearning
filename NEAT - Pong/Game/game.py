@@ -31,13 +31,16 @@ class Game:
     YELLOW = (255, 250, 0)
     BG_IMG = pygame.image.load(os.path.join("assets", "bg.png"))
 
-    def __init__(self, win, win_width, win_height):
+    def __init__(self, win, win_width, win_height, ball_vel, pad_vel):
         self.win_width = win_width
         self.win_height = win_height
 
-        self.left_paddle = Paddle(10, self.win_height // 2 - Paddle.HEIGHT // 2)
-        self.right_paddle = Paddle(self.win_width - 10 - Paddle.WIDTH, self.win_height // 2 - Paddle.HEIGHT//2)
-        self.ball = Ball(self.win_width // 2, self.win_height // 2)
+        self.ball_vel = ball_vel
+        self.pad_vel = pad_vel
+
+        self.left_paddle = Paddle(10, self.win_height // 2 - Paddle.HEIGHT // 2, self.pad_vel)
+        self.right_paddle = Paddle(self.win_width - 10 - Paddle.WIDTH, self.win_height // 2 - Paddle.HEIGHT//2, self.pad_vel)
+        self.ball = Ball(self.win_width // 2, self.win_height // 2, self.ball_vel)
 
         self.left_score = 0
         self.right_score = 0
@@ -82,7 +85,7 @@ class Game:
 
                     middle_y = left_paddle.y + Paddle.HEIGHT / 2
                     difference_in_y = middle_y - ball.y
-                    reduction_factor = (Paddle.HEIGHT / 2) / ball.MAX_VEL
+                    reduction_factor = (Paddle.HEIGHT / 2) / self.ball_vel
                     y_vel = difference_in_y / reduction_factor
                     ball.y_vel = -1 * y_vel
                     self.left_hits += 1
@@ -94,7 +97,7 @@ class Game:
 
                     middle_y = right_paddle.y + Paddle.HEIGHT / 2
                     difference_in_y = middle_y - ball.y
-                    reduction_factor = (Paddle.HEIGHT / 2) / ball.MAX_VEL
+                    reduction_factor = (Paddle.HEIGHT / 2) / self.ball_vel
                     y_vel = difference_in_y / reduction_factor
                     ball.y_vel = -1 * y_vel
                     self.right_hits += 1
@@ -124,13 +127,13 @@ class Game:
                   off the screen
         """
         if left:
-            if up and self.left_paddle.y - Paddle.VEL < 0:
+            if up and self.left_paddle.y - self.pad_vel < 0:
                 return False
             if not up and self.left_paddle.y + Paddle.HEIGHT > self.win_height:
                 return False
             self.left_paddle.move(up)
         else:
-            if up and self.right_paddle.y - Paddle.VEL < 0:
+            if up and self.right_paddle.y - self.pad_vel < 0:
                 return False
             if not up and self.right_paddle.y + Paddle.HEIGHT > self.win_height:
                 return False

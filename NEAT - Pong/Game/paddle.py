@@ -3,14 +3,14 @@ import os
 
 
 class Paddle:
-    VEL = 45
     WIDTH = 30
     HEIGHT = 100
     IMG = pygame.image.load(os.path.join("assets", "paddle.png"))
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, pad_vel):
         self.x = self.original_x = x
         self.y = self.original_y = y
+        self.vel = pad_vel
         self.img = self.IMG
 
     def draw(self, win):
@@ -19,9 +19,9 @@ class Paddle:
 
     def move(self, up=True):
         if up:
-            self.y -= self.VEL
+            self.y -= self.vel
         else:
-            self.y += self.VEL
+            self.y += self.vel
 
     def reset(self):
         self.x = self.original_x

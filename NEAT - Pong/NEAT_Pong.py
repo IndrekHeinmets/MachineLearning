@@ -11,7 +11,9 @@ WIN_HEIGHT = round(WIN_WIDTH / AR)
 FPS = 60
 
 MAX_GENERATIONS = 50
-MODE = 'pp' # 'pp'-(player vs player), 'ap'-(ai(LHS) vs player(RHS)), 'pa'-(player(LHS) vs ai(RHS)), 'aa'-(ai vs ai)
+MODE = 'restore_train' # 'pp'-(player vs player), 'ap'-(ai(LHS) vs player(RHS)), 'pa'-(player(LHS) vs ai(RHS)), 'aa'-(ai vs ai), 'train'-(ai training configuration), 'restore_train'-(ai training configuration)
+MAX_BALL_VEL = 8
+PAD_VEL = 8
 
 # Window setup:
 WIN = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
@@ -20,11 +22,14 @@ pygame.display.set_icon(pygame.image.load(os.path.join("assets", "icon.ico")))
 
 
 class Pong:
-    def __init__(self, win, width, height):
-        self.game = Game(win, width, height)
+    def __init__(self, win, width, height, ball_vel, pad_vel):
+        self.game = Game(win, width, height, MAX_BALL_VEL, PAD_VEL)
         self.left_pad = self.game.left_paddle
+        self.left_pad.vel = pad_vel
         self.right_pad = self.game.right_paddle
+        self.right_pad.vel = pad_vel
         self.ball = self.game.ball
+        self.ball.max_vel = ball_vel
 
     def test_ai(self):
         run = True
@@ -106,12 +111,12 @@ def fitness(genomes, config):
         gen1.fitness = 0
         for _, gen2 in genomes[c+1:]:
             gen2.fitness = 0 if gen2.fitness == None else gen2.fitness
-            pong = Pong(WIN, WIN_WIDTH, WIN_HEIGHT)
+            pong = Pong(WIN, WIN_WIDTH, WIN_HEIGHT, MAX_BALL_VEL, PAD_VEL)
             pong.train_ai(gen1, gen2, config)
 
 
 
-def run_neat(config_path):
+def run_neat(config_path, cp_rc=False, restore=False, cp_n=None):
     checkpoint_frequency = 10
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
@@ -125,9 +130,24 @@ def run_neat(config_path):
     best_genome = pop.run(fitness, MAX_GENERATIONS)
 
 
+def main(config_path):
+    global MAX_BALL_VEL, PAD_VEL
+    if MODE == 'pp':
+        pass
+    elif MODE == 'ap' or MODE == 'pa':
+        pass
+    elif MODE == 'aa':
+        pass
+    elif MODE == 'train' or MODE == 'restore_train':
+            train_speed_mult = 10
+            MAX_BALL_VEL, PAD_VEL = MAX_BALL_VEL * train_speed_mult, PAD_VEL * train_speed_mult
+            if MODE == 'train':
+                run_neat(config_path, cp_rc=False, restore=False, cp_n=None)
+            elif MODE == 'restore_train':
+                run_neat(config_path, cp_rc=True, restore=True, cp_n=18)
+
+
 if __name__ == "__main__":
     loc_dir = os.path.dirname(__file__)
     config_path = os.path.join(loc_dir, 'NEAT_configs', 'config-feedforward.txt')
-    run_neat(config_path)
-
-    
+    main(config_path)

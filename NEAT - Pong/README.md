@@ -11,6 +11,8 @@
     * `MODE = 'ap'` → AI(left) vs Player(right).
     * `MODE = 'pa'` → Player(left) vs AI(right).
     * `MODE = 'aa'` → AI vs AI.
+    * `MODE = 'train'` → AI training configuration.
+    * `MODE = 'restore_train'` → Restore training from a checkpoint (must add a existing checkpoint nr on line xx).
 
 # Player Inputs:
  * RHS Player Up → `↑`
