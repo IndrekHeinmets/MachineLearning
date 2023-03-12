@@ -15,7 +15,7 @@ MAX_GENERATIONS = 25
 MAX_FIT = 0
 MODE = 'train'  # 'pp'-(player vs player), pa'-(player(LHS) vs ai(RHS)), 'aa'-(ai vs ai), 'train'-(ai training configuration), 'restore_train'-(ai training configuration)
 MAX_BALL_VEL = 10
-PAD_VEL = 1
+PAD_VEL = 10
 TIME_MULT = 10  # 1 - for Debugging & Observing, 10 - for Optimal Training
 
 # Window setup:
