@@ -1,7 +1,6 @@
 from .paddle import Paddle
 from .ball import Ball
 import pygame
-import random
 import os
 pygame.init()
 
@@ -15,14 +14,7 @@ class GameInformation:
 
 
 class Game:
-    """
-    To use this class simply initialize and instance and call the .loop() method
-    inside of a pygame event loop (i.e while loop). Inside of your event loop
-    you can call the .draw() and .move_paddle() methods according to your use case.
-    Use the information returned from .loop() to determine when to end the game by calling
-    .reset().
-    """
-    FONT_SIZE = 40
+    FONT_SIZE = 35
     FONT = pygame.font.SysFont("ariel", FONT_SIZE)
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
@@ -31,7 +23,7 @@ class Game:
     YELLOW = (255, 250, 0)
     BG_IMG = pygame.image.load(os.path.join("assets", "bg.png"))
 
-    def __init__(self, win, win_width, win_height, ball_vel, pad_vel):
+    def __init__(self, win, win_width, win_height, ball_vel, pad_vel, max_fit):
         self.win_width = win_width
         self.win_height = win_height
 
@@ -47,6 +39,7 @@ class Game:
         self.left_hits = 0
         self.right_hits = 0
         self.win = win
+        self.max_fit = max_fit
 
     def _draw_score(self):
         left_score_text = self.FONT.render(f'{self.left_score}', 1, self.GREEN if self.left_score > self.right_score else (self.YELLOW if self.left_score == self.right_score else self.RED))
@@ -68,6 +61,10 @@ class Game:
             rect_y = i * aspect_ratio
             pygame.draw.rect(self.win, self.WHITE, (win_size[0] // 2 - rect_width // 2, rect_y, rect_width, rect_height))
 
+    def _draw_stats(self):  
+        hits_text = self.FONT.render(f'Fit: {self.max_fit}', 1, self.WHITE)
+        self.win.blit(hits_text, (10, self.win_height - self.FONT_SIZE + 2))
+
     def _handle_collision(self):
         ball = self.ball
         left_paddle = self.left_paddle
@@ -82,7 +79,6 @@ class Game:
             if ball.y >= left_paddle.y and ball.y <= left_paddle.y + Paddle.HEIGHT:
                 if ball.x - ball.RADIUS <= left_paddle.x + Paddle.WIDTH:
                     ball.x_vel *= -1
-
                     middle_y = left_paddle.y + Paddle.HEIGHT / 2
                     difference_in_y = middle_y - ball.y
                     reduction_factor = (Paddle.HEIGHT / 2) / self.ball_vel
@@ -94,7 +90,6 @@ class Game:
             if ball.y >= right_paddle.y and ball.y <= right_paddle.y + Paddle.HEIGHT:
                 if ball.x + ball.RADIUS >= right_paddle.x:
                     ball.x_vel *= -1
-
                     middle_y = right_paddle.y + Paddle.HEIGHT / 2
                     difference_in_y = middle_y - ball.y
                     reduction_factor = (Paddle.HEIGHT / 2) / self.ball_vel
@@ -102,7 +97,7 @@ class Game:
                     ball.y_vel = -1 * y_vel
                     self.right_hits += 1
 
-    def draw(self, draw_score=True, draw_hits=False):
+    def draw(self, draw_score=True, draw_hits=False, draw_stats=True):
         self.win.fill(self.WHITE)
         self.win.blit(self.BG_IMG, (0, 0))
         self._draw_divider((self.win_width, self.win_height), (self.win_width / self.win_height))
@@ -113,19 +108,14 @@ class Game:
         if draw_hits:
             self._draw_hits()
 
+        if draw_stats:
+            self._draw_stats()
+
         for paddle in [self.left_paddle, self.right_paddle]:
             paddle.draw(self.win)
-
         self.ball.draw(self.win)
 
     def move_paddle(self, left=True, up=True):
-        """
-        Move the left or right paddle.
-
-        :returns: boolean indicating if paddle movement is valid. 
-                  Movement is invalid if it causes paddle to go 
-                  off the screen
-        """
         if left:
             if up and self.left_paddle.y - self.pad_vel < 0:
                 return False
@@ -138,16 +128,9 @@ class Game:
             if not up and self.right_paddle.y + Paddle.HEIGHT > self.win_height:
                 return False
             self.right_paddle.move(up)
-
         return True
 
     def loop(self):
-        """
-        Executes a single game loop.
-
-        :returns: GameInformation instance stating score 
-                  and hits of each paddle.
-        """
         self.ball.move()
         self._handle_collision()
 
@@ -160,11 +143,9 @@ class Game:
 
         game_info = GameInformation(
             self.left_hits, self.right_hits, self.left_score, self.right_score)
-
         return game_info
 
     def reset(self):
-        """Resets the entire game."""
         self.ball.reset()
         self.left_paddle.reset()
         self.right_paddle.reset()

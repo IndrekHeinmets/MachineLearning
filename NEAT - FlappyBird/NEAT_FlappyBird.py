@@ -187,8 +187,8 @@ def save_gen(gen, file_path):
         pickle.dump(gen, f)
 
 
-def load_gen(filename):
-    with open(filename, 'rb') as f:
+def load_gen(file_path):
+    with open(fil_path, 'rb') as f:
         gen = pickle.load(f)
     return None, gen
 
