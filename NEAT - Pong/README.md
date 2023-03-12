@@ -8,11 +8,11 @@
  * Set maximum number of generations before terminating `MAX_GENERATIONS`.
  * Set `MODE` to change game behaviour:
     * `MODE = 'pp'` → Player vs Player.
-    * `MODE = 'ap'` → AI(left) vs Player(right).
     * `MODE = 'pa'` → Player(left) vs AI(right).
     * `MODE = 'aa'` → AI vs AI.
     * `MODE = 'train'` → AI training configuration.
     * `MODE = 'restore_train'` → Restore training from a checkpoint (must add a existing checkpoint nr on line xx).
+        * (changes to NEAT config won't take effect when restoring from a checkpoint)      
 
 # Player Inputs:
  * RHS Player Up → `↑`

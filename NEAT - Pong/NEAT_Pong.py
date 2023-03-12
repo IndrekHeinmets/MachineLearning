@@ -1,4 +1,5 @@
 from Game import Game
+from datetime import datetime
 import pickle
 import pygame
 import neat
@@ -10,11 +11,11 @@ WIN_WIDTH = 1400
 WIN_HEIGHT = round(WIN_WIDTH / AR)
 FPS = 60
 
-MAX_GENERATIONS = 2
+MAX_GENERATIONS = 25
 MAX_FIT = 0
-MODE = 'pp'  # 'pp'-(player vs player), 'ap'-(ai(LHS) vs player(RHS)), 'pa'-(player(LHS) vs ai(RHS)), 'aa'-(ai vs ai), 'train'-(ai training configuration), 'restore_train'-(ai training configuration)
+MODE = 'train'  # 'pp'-(player vs player), pa'-(player(LHS) vs ai(RHS)), 'aa'-(ai vs ai), 'train'-(ai training configuration), 'restore_train'-(ai training configuration)
 MAX_BALL_VEL = 10
-PAD_VEL = 10
+PAD_VEL = 1
 TIME_MULT = 10  # 1 - for Debugging & Observing, 10 - for Optimal Training
 
 # Window setup:
@@ -75,9 +76,6 @@ class Pong:
             if MODE == 'pp':
                 self.lhs_player_controlls()
                 self.rhs_player_controlls()
-            elif MODE == 'ap':
-                self.rhs_player_controlls()
-                self.net_move_pad(self.run_net_decision(net1), left=True)
             elif MODE == 'pa':
                 self.lhs_player_controlls()
                 self.net_move_pad(self.run_net_decision(net2), left=False)
@@ -85,7 +83,7 @@ class Pong:
                 self.net_move_pad(self.run_net_decision(net1), left=True)
                 self.net_move_pad(self.run_net_decision(net2), left=False)
 
-            game_info = self.game.loop()
+            _ = self.game.loop()
             self.game.draw(True, False, False)
             pygame.display.update()
 
@@ -104,7 +102,6 @@ class Pong:
             self.net_move_pad(self.run_net_decision(net2), left=False)
 
             game_info = self.game.loop()
-
             self.game.draw(draw_score=False, draw_hits=True, draw_stats=True)
             pygame.display.update()
 
@@ -121,8 +118,8 @@ class Pong:
         return gen1.fitness
 
 
-def save_gen(gen, file_path):
-    with open(file_path, 'wb') as f:
+def save_gen(gen, genomes_path):
+    with open(os.path.join(genomes_path, f'best_gen→{datetime.now()}.genome'), 'wb') as f:
         pickle.dump(gen, f)
 
 
@@ -142,7 +139,7 @@ def fitness(genomes, config):
             pong.train_ai(gen1, gen2, config)
   
 
-def run_neat(config_path, cp_rc=False, restore=False, cp_n=None):
+def run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
@@ -158,10 +155,9 @@ def run_neat(config_path, cp_rc=False, restore=False, cp_n=None):
         checkpoint_frequency = 10
         pop.add_reporter(neat.Checkpointer(checkpoint_frequency, filename_prefix=os.path.join('checkpoints', 'cp-')))
 
-    if MODE == 'train' or MODE == 'restore_train':
-        best_genome = pop.run(fitness, MAX_GENERATIONS)
-        save_gen(best_genome, best_gen_path)
-        print(f'\nBest genome:\n{best_genome}')
+    best_genome = pop.run(fitness, MAX_GENERATIONS)
+    save_gen(best_genome, genomes_path)
+    print(f'\nBest genome:\n{best_genome}')
 
 
 def run_gen(best_gen_path, config_path):
@@ -170,20 +166,21 @@ def run_gen(best_gen_path, config_path):
     Pong(WIN, WIN_WIDTH, WIN_HEIGHT, MAX_BALL_VEL, PAD_VEL, MAX_FIT).test_ai(load_gen(best_gen_path), load_gen(best_gen_path), config)
 
 
-def main(config_path, best_gen_path):
+def main(config_path, best_gen_path, genomes_path):
     global MAX_BALL_VEL, PAD_VEL, TIME_MULT
-    if MODE == 'pp' or MODE == 'ap' or MODE == 'pa' or MODE == 'aa':
+    if MODE == 'pp' or  MODE == 'pa' or MODE == 'aa':
         run_gen(best_gen_path, config_path)
     elif MODE == 'train' or MODE == 'restore_train':
         MAX_BALL_VEL, PAD_VEL = MAX_BALL_VEL * TIME_MULT, PAD_VEL * TIME_MULT
         if MODE == 'train':
-            run_neat(config_path, cp_rc=False, restore=False, cp_n=None)
+            run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None)
         elif MODE == 'restore_train':
-            run_neat(config_path, cp_rc=True, restore=True, cp_n=24)
+            run_neat(config_path, genomes_path, cp_rc=True, restore=True, cp_n=24)
 
 
 if __name__ == "__main__":
     loc_dir = os.path.dirname(__file__)
     config_path = os.path.join(loc_dir, 'NEAT_configs', 'config-feedforward.txt')
     best_gen_path = os.path.join(loc_dir, 'genomes', 'best.genome')
-    main(config_path, best_gen_path)
+    genomes_path = os.path.join(loc_dir, 'genomes')
+    main(config_path, best_gen_path, genomes_path)
