@@ -1,5 +1,4 @@
 from Game import Game
-from datetime import datetime
 import pickle
 import pygame
 import neat
@@ -13,6 +12,8 @@ FPS = 60
 
 MAX_GENERATIONS = 25
 MAX_FIT = 0
+MOVEMENT_WEIGHT = 5
+CHECKPOINT_FREQUENCY = 10
 MODE = 'train'  # 'pp'-(player vs player), pa'-(player(LHS) vs ai(RHS)), 'aa'-(ai vs ai), 'train'-(ai training configuration), 'restore_train'-(ai training configuration)
 MAX_BALL_VEL = 10
 PAD_VEL = 10
@@ -123,17 +124,16 @@ class Pong:
         gen2.fitness += game_info.right_hits
 
         # Incentivise movement:
-        weight = 0.1
         if self.left_pad.x == self.left_pad.prev_x:
-            gen1.fitness -= weight
+            gen1.fitness -= MOVEMENT_WEIGHT
         if self.right_pad.x == self.right_pad.prev_x:
-            gen2.fitness -= weight
+            gen2.fitness -= MOVEMENT_WEIGHT
         return (gen1.fitness + gen2.fitness) / 2
 
 
 
 def save_gen(gen, genomes_path):
-    with open(os.path.join(genomes_path, f'best_gen→{datetime.now()}.genome'), 'wb') as f:
+    with open(os.path.join(genomes_path, f'Gen_fit-{gen.fitness}.genome'), 'wb') as f:
         pickle.dump(gen, f)
 
 
@@ -158,7 +158,7 @@ def run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None):
                          neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
     if restore:
-        pop = neat.Checkpointer.restore_checkpoint(os.path.join(f'checkpoints', f'cp-{cp_n}'))
+        pop = neat.Checkpointer.restore_checkpoint(os.path.join(f'checkpoints', f'Cp-{cp_n}'))
     else:
         pop = neat.Population(config)
 
@@ -166,8 +166,7 @@ def run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None):
     pop.add_reporter(neat.StatisticsReporter())
 
     if cp_rc:
-        checkpoint_frequency = 10
-        pop.add_reporter(neat.Checkpointer(checkpoint_frequency, filename_prefix=os.path.join('checkpoints', 'cp-')))
+        pop.add_reporter(neat.Checkpointer(CHECKPOINT_FREQUENCY, filename_prefix=os.path.join('checkpoints', 'Cp-')))
 
     best_genome = pop.run(fitness, MAX_GENERATIONS)
     save_gen(best_genome, genomes_path)
@@ -187,7 +186,7 @@ def main(config_path, best_gen_path, genomes_path):
     elif MODE == 'train' or MODE == 'restore_train':
         MAX_BALL_VEL, PAD_VEL = MAX_BALL_VEL * TIME_MULT, PAD_VEL * TIME_MULT
         if MODE == 'train':
-            run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None)
+            run_neat(config_path, genomes_path, cp_rc=True, restore=False, cp_n=None)
         elif MODE == 'restore_train':
             run_neat(config_path, genomes_path, cp_rc=True, restore=True, cp_n=24)
 
@@ -195,6 +194,6 @@ def main(config_path, best_gen_path, genomes_path):
 if __name__ == "__main__":
     loc_dir = os.path.dirname(__file__)
     config_path = os.path.join(loc_dir, 'NEAT_configs', 'config-feedforward.txt')
-    best_gen_path = os.path.join(loc_dir, 'genomes', 'best.genome')
+    best_gen_path = os.path.join(loc_dir, 'genomes', f'Gen_fi-{None}.genome')
     genomes_path = os.path.join(loc_dir, 'genomes')
     main(config_path, best_gen_path, genomes_path)
