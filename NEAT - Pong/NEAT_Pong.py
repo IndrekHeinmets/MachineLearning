@@ -14,6 +14,7 @@ MAX_GENERATIONS = 50
 MODE = 'restore_train' # 'pp'-(player vs player), 'ap'-(ai(LHS) vs player(RHS)), 'pa'-(player(LHS) vs ai(RHS)), 'aa'-(ai vs ai), 'train'-(ai training configuration), 'restore_train'-(ai training configuration)
 MAX_BALL_VEL = 8
 PAD_VEL = 8
+TIME_MULT = 10 # 1 - for Debugging & Observing, 10 - for Optimal Training
 
 # Window setup:
 WIN = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
@@ -149,7 +150,7 @@ def run_neat(config_path, cp_rc=False, restore=False, cp_n=None):
         print(f'\nBest genome:\n{best_genome}')
 
 def main(config_path):
-    global MAX_BALL_VEL, PAD_VEL
+    global MAX_BALL_VEL, PAD_VEL, TIME_MULT
     if MODE == 'pp':
         pass
     elif MODE == 'ap' or MODE == 'pa':
@@ -157,12 +158,11 @@ def main(config_path):
     elif MODE == 'aa':
         pass
     elif MODE == 'train' or MODE == 'restore_train':
-            train_speed_mult = 10
-            MAX_BALL_VEL, PAD_VEL = MAX_BALL_VEL * train_speed_mult, PAD_VEL * train_speed_mult
+            MAX_BALL_VEL, PAD_VEL = MAX_BALL_VEL * TIME_MULT, PAD_VEL * TIME_MULT
             if MODE == 'train':
                 run_neat(config_path, cp_rc=False, restore=False, cp_n=None)
             elif MODE == 'restore_train':
-                run_neat(config_path, cp_rc=True, restore=True, cp_n=18)
+                run_neat(config_path, cp_rc=True, restore=True, cp_n=12)
 
 
 if __name__ == "__main__":
