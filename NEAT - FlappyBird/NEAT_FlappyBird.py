@@ -21,7 +21,7 @@ GREEN = (0, 255, 0)
 CHECKPOINT_FREQUENCY = 10
 
 MAX_GENERATIONS = 2
-MODE = 'restore_train'  # 'train'-(train NEAT nn & save best), 'restore_train'-(restore training from a checkpoint), 'run'-(run existing genome), 'play'-(play with manual keboard input)
+MODE = 'run'  # 'train'-(train NEAT nn & save best), 'restore_train'-(restore training from a checkpoint), 'run'-(run existing genome), 'play'-(play with manual keboard input)
 DRAW_LINES = True
 FONT_SIZE = 35
 FONT = pygame.font.SysFont("ariel", FONT_SIZE)
@@ -488,6 +488,6 @@ def main(config_path, best_gen_path, genomes_path):
 if __name__ == '__main__':
     loc_dir = os.path.dirname(__file__)
     config_path = os.path.join(loc_dir, 'NEAT_configs', 'config-feedforward.txt')
-    best_gen_path = os.path.join(loc_dir, 'genomes', 'best.genome')
+    best_gen_path = os.path.join(loc_dir, 'genomes', f'Gen_fit-{250}.genome')
     genomes_path = os.path.join(loc_dir, 'genomes')
     main(config_path, best_gen_path, genomes_path)
