@@ -104,6 +104,16 @@ class Pong:
         gen2.fitness += game_info.right_hits
 
 
+def save_gen(gen, file_path):
+    with open(file_path, 'wb') as f:
+        pickle.dump(gen, f)
+
+
+def load_gen(filename):
+    with open(filename, 'rb') as f:
+        return pickle.load(f)
+
+
 def fitness(genomes, config):
     for c, (_, gen1) in enumerate(genomes):
         if c == len(genomes) - 1:
@@ -121,14 +131,22 @@ def run_neat(config_path, cp_rc=False, restore=False, cp_n=None):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
-    # pop = neat.Checkpointer.restore_checkpoint(os.path.join('checkpoints', 'cp-12'))
-    pop = neat.Population(config)
+    if restore:
+        pop = neat.Checkpointer.restore_checkpoint(os.path.join(f'checkpoints', f'cp-{cp_n}'))
+    else:
+        pop = neat.Population(config)
+
     pop.add_reporter(neat.StdOutReporter(True))
     pop.add_reporter(neat.StatisticsReporter())
-    pop.add_reporter(neat.Checkpointer(checkpoint_frequency, filename_prefix=os.path.join('checkpoints', 'cp-')))
 
-    best_genome = pop.run(fitness, MAX_GENERATIONS)
+    if cp_rc:
+        checkpoint_frequency = 10
+        pop.add_reporter(neat.Checkpointer(checkpoint_frequency, filename_prefix=os.path.join('checkpoints', 'cp-')))
 
+    if MODE == 'train' or MODE == 'restore_train':
+        best_genome = pop.run(fitness, MAX_GENERATIONS)
+        save_gen(best_genome, best_gen_path)
+        print(f'\nBest genome:\n{best_genome}')
 
 def main(config_path):
     global MAX_BALL_VEL, PAD_VEL
@@ -150,4 +168,5 @@ def main(config_path):
 if __name__ == "__main__":
     loc_dir = os.path.dirname(__file__)
     config_path = os.path.join(loc_dir, 'NEAT_configs', 'config-feedforward.txt')
+    best_gen_path = os.path.join(loc_dir, 'genomes', 'best.genome')
     main(config_path)
