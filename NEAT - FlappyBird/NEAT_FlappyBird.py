@@ -18,6 +18,7 @@ MAX_FIT = 0
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
+CHECKPOINT_FREQUENCY = 10
 
 MAX_GENERATIONS = 2
 MODE = 'restore_train'  # 'train'-(train NEAT nn & save best), 'restore_train'-(restore training from a checkpoint), 'run'-(run existing genome), 'play'-(play with manual keboard input)
@@ -182,13 +183,13 @@ class Base():
         win.blit(self.IMG, (self.x2, self.y))
 
 
-def save_gen(gen, file_path):
-    with open(file_path, 'wb') as f:
+def save_gen(gen, genomes_path):
+    with open(os.path.join(genomes_path, f'Gen_fit-{gen.fitness}.genome'), 'wb') as f:
         pickle.dump(gen, f)
 
 
 def load_gen(file_path):
-    with open(fil_path, 'rb') as f:
+    with open(file_path, 'rb') as f:
         gen = pickle.load(f)
     return None, gen
 
@@ -450,12 +451,12 @@ def manual_play():
         draw_win(WIN, birds, pipes, base, score, GEN, pipe_i)
 
 
-def run_neat(config_path, cp_rc=False, restore=False, cp_n=None):
+def run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
     if restore:
-        pop = neat.Checkpointer.restore_checkpoint(os.path.join(f'checkpoints', f'cp-{cp_n}'))
+        pop = neat.Checkpointer.restore_checkpoint(os.path.join(f'checkpoints', f'Cp-{cp_n}'))
     else:
         pop = neat.Population(config)
 
@@ -463,22 +464,21 @@ def run_neat(config_path, cp_rc=False, restore=False, cp_n=None):
     pop.add_reporter(neat.StatisticsReporter())
 
     if cp_rc:
-        checkpoint_frequency = 10
-        pop.add_reporter(neat.Checkpointer(checkpoint_frequency, filename_prefix=os.path.join('checkpoints', 'cp-')))
+        pop.add_reporter(neat.Checkpointer(CHECKPOINT_FREQUENCY, filename_prefix=os.path.join('checkpoints', 'Cp-')))
 
     if MODE == 'train' or MODE == 'restore_train':
         best_genome = pop.run(fitness, MAX_GENERATIONS)
-        save_gen(best_genome, best_gen_path)
+        save_gen(best_genome, genomes_path)
         print(f'\nBest genome:\n{best_genome}')
     elif MODE == 'test':
         pop.run(fitness, MAX_GENERATIONS)
 
 
-def main(config_path, best_gen_path):
+def main(config_path, best_gen_path, genomes_path):
     if MODE == 'train':
-        run_neat(config_path, cp_rc=False, restore=False, cp_n=None)
+        run_neat(config_path, genomes_path, cp_rc=True, restore=False, cp_n=None)
     elif MODE == 'restore_train':
-        run_neat(config_path, cp_rc=True, restore=True, cp_n=18)
+        run_neat(config_path, genomes_path, cp_rc=True, restore=True, cp_n=18)
     elif MODE == 'run':
         run_gen(config_path, best_gen_path)
     elif MODE == 'play':
@@ -489,4 +489,5 @@ if __name__ == '__main__':
     loc_dir = os.path.dirname(__file__)
     config_path = os.path.join(loc_dir, 'NEAT_configs', 'config-feedforward.txt')
     best_gen_path = os.path.join(loc_dir, 'genomes', 'best.genome')
-    main(config_path, best_gen_path)
+    genomes_path = os.path.join(loc_dir, 'genomes')
+    main(config_path, best_gen_path, genomes_path)
