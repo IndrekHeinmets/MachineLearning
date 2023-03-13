@@ -56,7 +56,8 @@ class Pong:
             self.game.move_paddle(left=False, up=False)
 
     def run_net_decision(self, net):
-        net_out = net.activate((self.left_pad.y, self.ball.y, abs(self.left_pad.x - self.ball.x)))
+        net_out = net.activate(
+            (self.left_pad.y, self.ball.y, abs(self.left_pad.x - self.ball.x)))
         return net_out.index(max(net_out))
 
     def net_move_pad(self, move, left=True):
@@ -122,18 +123,18 @@ class Pong:
                     MAX_FIT = g1_fit
                 break
 
-
     ## NEEDS TO BE FIXED ##
+
     def calc_fitness(self, gen1, gen2, game_info):
         gen1.fitness += game_info.left_hits * HIT_REWARD
         gen2.fitness += game_info.right_hits * HIT_REWARD
 
-        if self.left_pad.prev_x - MOVEMENT_BUFFER < self.left_pad.x <= self.left_pad.prev_x + MOVEMENT_BUFFER:
-            gen1.fitness -= MOVEMENT_REWARD
-            print('left: ', self.left_pad.x, self.left_pad.prev_x)
-        if self.right_pad.prev_x - MOVEMENT_BUFFER < self.right_pad.x <= self.right_pad.prev_x + MOVEMENT_BUFFER:
-            gen2.fitness -= MOVEMENT_REWARD
-            print('right:', self.right_pad.x, self.right_pad.prev_x)
+        # if self.left_pad.prev_x - MOVEMENT_BUFFER < self.left_pad.x <= self.left_pad.prev_x + MOVEMENT_BUFFER:
+        #     gen1.fitness -= MOVEMENT_REWARD
+        #     print('left: ', self.left_pad.x, self.left_pad.prev_x)
+        # if self.right_pad.prev_x - MOVEMENT_BUFFER < self.right_pad.x <= self.right_pad.prev_x + MOVEMENT_BUFFER:
+        #     gen2.fitness -= MOVEMENT_REWARD
+        #     print('right:', self.right_pad.x, self.right_pad.prev_x)
 
         return (gen1.fitness + gen2.fitness) / 2
 
