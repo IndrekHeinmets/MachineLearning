@@ -12,9 +12,12 @@ FPS = 60
 
 MAX_GENERATIONS = 25
 MAX_FIT = 0
-MOVEMENT_WEIGHT = 5
 CHECKPOINT_FREQUENCY = 10
-MODE = 'train'  # 'pp'-(player vs player), pa'-(player(LHS) vs ai(RHS)), 'aa'-(ai vs ai), 'train'-(ai training configuration), 'restore_train'-(ai training configuration)
+MOVEMENT_BUFFER = 15
+MOVEMENT_REWARD = 1
+HIT_REWARD = 2
+# 'pp'-(player vs player), pa'-(player(LHS) vs ai(RHS)), 'aa'-(ai vs ai), 'train'-(ai training configuration), 'restore_train'-(ai training configuration)
+MODE = 'train'
 MAX_BALL_VEL = 10
 PAD_VEL = 10
 TIME_MULT = 10  # 1 - for Debugging & Observing, 10 - for Optimal Training
@@ -55,7 +58,7 @@ class Pong:
     def run_net_decision(self, net):
         net_out = net.activate((self.left_pad.y, self.ball.y, abs(self.left_pad.x - self.ball.x)))
         return net_out.index(max(net_out))
-    
+
     def net_move_pad(self, move, left=True):
         if move == 0:
             pass
@@ -63,9 +66,6 @@ class Pong:
             self.game.move_paddle(left=left, up=True)
         else:
             self.game.move_paddle(left=left, up=False)
-
-        self.left_pad.prev_x = self.left_pad
-        self.right_pad.prev_x = self.right_pad
 
     def test_ai(self, gen1, gen2, config):
         net1 = neat.nn.FeedForwardNetwork.create(gen1, config)
@@ -112,6 +112,9 @@ class Pong:
             self.game.draw(draw_score=False, draw_hits=True, draw_stats=True)
             pygame.display.update()
 
+            self.left_pad.prev_x = self.left_pad
+            self.right_pad.prev_x = self.right_pad
+
             # Stop game as soon as one player misses (reduce training time):
             if game_info.left_score >= 1 or game_info.right_score >= 1 or game_info.left_hits > 50:
                 g1_fit = self.calc_fitness(gen1, gen2, game_info)
@@ -119,17 +122,20 @@ class Pong:
                     MAX_FIT = g1_fit
                 break
 
+
+    ## NEEDS TO BE FIXED ##
     def calc_fitness(self, gen1, gen2, game_info):
-        gen1.fitness += game_info.left_hits
-        gen2.fitness += game_info.right_hits
+        gen1.fitness += game_info.left_hits * HIT_REWARD
+        gen2.fitness += game_info.right_hits * HIT_REWARD
 
-        # Incentivise movement:
-        if self.left_pad.x == self.left_pad.prev_x:
-            gen1.fitness -= MOVEMENT_WEIGHT
-        if self.right_pad.x == self.right_pad.prev_x:
-            gen2.fitness -= MOVEMENT_WEIGHT
+        if self.left_pad.prev_x - MOVEMENT_BUFFER < self.left_pad.x <= self.left_pad.prev_x + MOVEMENT_BUFFER:
+            gen1.fitness -= MOVEMENT_REWARD
+            print('left: ', self.left_pad.x, self.left_pad.prev_x)
+        if self.right_pad.prev_x - MOVEMENT_BUFFER < self.right_pad.x <= self.right_pad.prev_x + MOVEMENT_BUFFER:
+            gen2.fitness -= MOVEMENT_REWARD
+            print('right:', self.right_pad.x, self.right_pad.prev_x)
+
         return (gen1.fitness + gen2.fitness) / 2
-
 
 
 def save_gen(gen, genomes_path):
@@ -149,16 +155,18 @@ def fitness(genomes, config):
         gen1.fitness = 0
         for _, gen2 in genomes[c + 1:]:
             gen2.fitness = 0 if gen2.fitness == None else gen2.fitness
-            pong = Pong(WIN, WIN_WIDTH, WIN_HEIGHT, MAX_BALL_VEL, PAD_VEL, MAX_FIT)
+            pong = Pong(WIN, WIN_WIDTH, WIN_HEIGHT,
+                        MAX_BALL_VEL, PAD_VEL, MAX_FIT)
             pong.train_ai(gen1, gen2, config)
-  
+
 
 def run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
                          neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
     if restore:
-        pop = neat.Checkpointer.restore_checkpoint(os.path.join(f'checkpoints', f'Cp-{cp_n}'))
+        pop = neat.Checkpointer.restore_checkpoint(
+            os.path.join(f'checkpoints', f'Cp-{cp_n}'))
     else:
         pop = neat.Population(config)
 
@@ -166,7 +174,8 @@ def run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None):
     pop.add_reporter(neat.StatisticsReporter())
 
     if cp_rc:
-        pop.add_reporter(neat.Checkpointer(CHECKPOINT_FREQUENCY, filename_prefix=os.path.join('checkpoints', 'Cp-')))
+        pop.add_reporter(neat.Checkpointer(CHECKPOINT_FREQUENCY,
+                         filename_prefix=os.path.join('checkpoints', 'Cp-')))
 
     best_genome = pop.run(fitness, MAX_GENERATIONS)
     save_gen(best_genome, genomes_path)
@@ -175,25 +184,29 @@ def run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None):
 
 def run_gen(best_gen_path, config_path):
     config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                    neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
-    Pong(WIN, WIN_WIDTH, WIN_HEIGHT, MAX_BALL_VEL, PAD_VEL, MAX_FIT).test_ai(load_gen(best_gen_path), load_gen(best_gen_path), config)
+                         neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
+    Pong(WIN, WIN_WIDTH, WIN_HEIGHT, MAX_BALL_VEL, PAD_VEL, MAX_FIT).test_ai(
+        load_gen(best_gen_path), load_gen(best_gen_path), config)
 
 
 def main(config_path, best_gen_path, genomes_path):
     global MAX_BALL_VEL, PAD_VEL, TIME_MULT
-    if MODE == 'pp' or  MODE == 'pa' or MODE == 'aa':
+    if MODE == 'pp' or MODE == 'pa' or MODE == 'aa':
         run_gen(best_gen_path, config_path)
     elif MODE == 'train' or MODE == 'restore_train':
         MAX_BALL_VEL, PAD_VEL = MAX_BALL_VEL * TIME_MULT, PAD_VEL * TIME_MULT
         if MODE == 'train':
-            run_neat(config_path, genomes_path, cp_rc=True, restore=False, cp_n=None)
+            run_neat(config_path, genomes_path,
+                     cp_rc=True, restore=False, cp_n=None)
         elif MODE == 'restore_train':
-            run_neat(config_path, genomes_path, cp_rc=True, restore=True, cp_n=24)
+            run_neat(config_path, genomes_path,
+                     cp_rc=True, restore=True, cp_n=23)
 
 
 if __name__ == "__main__":
     loc_dir = os.path.dirname(__file__)
-    config_path = os.path.join(loc_dir, 'NEAT_configs', 'config-feedforward.txt')
-    best_gen_path = os.path.join(loc_dir, 'genomes', f'Gen_fi-{None}.genome')
+    config_path = os.path.join(
+        loc_dir, 'NEAT_configs', 'config-feedforward.txt')
+    best_gen_path = os.path.join(loc_dir, 'genomes', f'Gen_fit-{120}.genome')
     genomes_path = os.path.join(loc_dir, 'genomes')
     main(config_path, best_gen_path, genomes_path)
