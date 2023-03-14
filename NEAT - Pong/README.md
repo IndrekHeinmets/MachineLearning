@@ -4,14 +4,15 @@
  * Create a custom conda virtual environmen: `conda env create -f env_setup\NEAT-venv.yml`.
  * Run game: `NEAT_Pong.py`.
 
- # Configure Game (`NEAT_Pong.py` line 13-14):
+ # Configure Game (`NEAT_Pong.py`):
  * Set maximum number of generations before terminating `MAX_GENERATIONS`.
  * Set `MODE` to change game behaviour:
     * `MODE = 'pp'` → Player vs Player.
+    * `MODE = 'ap'` → AI(left) vs Player(right).
     * `MODE = 'pa'` → Player(left) vs AI(right).
     * `MODE = 'aa'` → AI vs AI.
     * `MODE = 'train'` → AI training configuration.
-    * `MODE = 'restore_train'` → Restore training from a checkpoint (must add a existing checkpoint nr on line xx).
+    * `MODE = 'restore_train'` → Restore training from a checkpoint.
         * (changes to NEAT config won't take effect when restoring from a checkpoint)      
 
 # Player Inputs:
