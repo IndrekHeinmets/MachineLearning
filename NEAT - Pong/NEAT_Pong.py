@@ -1,6 +1,7 @@
 from Game import Game
 import pickle
 import pygame
+import time
 import neat
 import os
 pygame.font.init()
@@ -10,14 +11,12 @@ WIN_WIDTH = 1400
 WIN_HEIGHT = round(WIN_WIDTH / AR)
 FPS = 60
 
-MAX_GENERATIONS = 25
+MAX_GENERATIONS = 20
 MAX_FIT = 0
 CHECKPOINT_FREQUENCY = 10
-MOVEMENT_BUFFER = 15
-MOVEMENT_REWARD = 1
-HIT_REWARD = 2
+MAX_HITS = 25
 # 'pp'-(player vs player), pa'-(player(LHS) vs ai(RHS)), 'aa'-(ai vs ai), 'train'-(ai training configuration), 'restore_train'-(ai training configuration)
-MODE = 'train'
+MODE = 'pa'
 MAX_BALL_VEL = 10
 PAD_VEL = 10
 TIME_MULT = 10  # 1 - for Debugging & Observing, 10 - for Optimal Training
@@ -30,7 +29,7 @@ pygame.display.set_icon(pygame.image.load(os.path.join("assets", "icon.ico")))
 
 class Pong:
     def __init__(self, win, width, height, ball_vel, pad_vel, max_fit):
-        self.game = Game(win, width, height, MAX_BALL_VEL, PAD_VEL, MAX_FIT)
+        self.game = Game(win, width, height, MAX_BALL_VEL, PAD_VEL, max_fit)
         self.left_pad = self.game.left_paddle
         self.left_pad.prev_x = 0
         self.left_pad.vel = pad_vel
@@ -55,27 +54,33 @@ class Pong:
         if keys[pygame.K_DOWN]:
             self.game.move_paddle(left=False, up=False)
 
-    def run_net_decision(self, net):
+    def run_net_decision(self, net, pad):
         net_out = net.activate(
-            (self.left_pad.y, self.ball.y, abs(self.left_pad.x - self.ball.x)))
+            (pad.y, self.ball.y, abs(pad.x - self.ball.x)))
         return net_out.index(max(net_out))
 
-    def net_move_pad(self, move, left=True):
-        if move == 0:
-            pass
-        elif move == 1:
-            self.game.move_paddle(left=left, up=True)
-        else:
-            self.game.move_paddle(left=left, up=False)
+    def net_move_pad(self, move, gen, left=True):
+        valid = True
+        if move == 0:  # Incentivize moving:
+            gen.fitness -= 0.01
+        elif move == 1:  # Move up:
+            valid = self.game.move_paddle(left=left, up=True)
+        elif move == 2:  # Move down:
+            valid = self.game.move_paddle(left=left, up=False)
+
+        if not valid:  # Incentivize staying on screen:
+            gen.fitness -= 1
 
     def test_ai(self, gen1, gen2, config):
         net1 = neat.nn.FeedForwardNetwork.create(gen1, config)
         net2 = neat.nn.FeedForwardNetwork.create(gen2, config)
 
-        run = True
         clock = pygame.time.Clock()
+        run = True
         while run:
             clock.tick(FPS)
+            _ = self.game.loop()
+
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
@@ -86,61 +91,55 @@ class Pong:
                 self.rhs_player_controlls()
             elif MODE == 'pa':
                 self.lhs_player_controlls()
-                self.net_move_pad(self.run_net_decision(net2), left=False)
+                self.net_move_pad(self.run_net_decision(
+                    net2, self.right_pad), gen2, left=False)
             elif MODE == 'aa':
                 self.net_move_pad(self.run_net_decision(net1), left=True)
                 self.net_move_pad(self.run_net_decision(net2), left=False)
 
-            _ = self.game.loop()
-            self.game.draw(True, False, False)
+            self.game.draw(draw_score=True, draw_hits=False, draw_stats=False)
             pygame.display.update()
 
     def train_ai(self, gen1, gen2, config):
         global MAX_FIT
+        st = time.time()
         net1 = neat.nn.FeedForwardNetwork.create(gen1, config)
         net2 = neat.nn.FeedForwardNetwork.create(gen2, config)
+        self.gen1 = gen1
+        self.gen2 = gen2
 
         run = True
         while run:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    quit()
+                    return True
 
-            self.net_move_pad(self.run_net_decision(net1), left=True)
-            self.net_move_pad(self.run_net_decision(net2), left=False)
+            self.net_move_pad(self.run_net_decision(
+                net1, self.left_pad), gen1, left=True)
+            self.net_move_pad(self.run_net_decision(
+                net2, self.right_pad), gen2, left=False)
 
             game_info = self.game.loop()
             self.game.draw(draw_score=False, draw_hits=True, draw_stats=True)
             pygame.display.update()
 
-            self.left_pad.prev_x = self.left_pad
-            self.right_pad.prev_x = self.right_pad
-
+            duration = time.time() - st
             # Stop game as soon as one player misses (reduce training time):
-            if game_info.left_score >= 1 or game_info.right_score >= 1 or game_info.left_hits > 50:
-                g1_fit = self.calc_fitness(gen1, gen2, game_info)
-                if g1_fit > MAX_FIT:
-                    MAX_FIT = g1_fit
+            if game_info.left_score >= 1 or game_info.right_score >= 1 or game_info.left_hits > MAX_HITS:
+                fit = self.calc_fitness(game_info, duration)
+                if fit > MAX_FIT:
+                    MAX_FIT = fit
                 break
+        return False
 
-    ## NEEDS TO BE FIXED ##
-
-    def calc_fitness(self, gen1, gen2, game_info):
-        gen1.fitness += game_info.left_hits * HIT_REWARD
-        gen2.fitness += game_info.right_hits * HIT_REWARD
-
-        # if self.left_pad.prev_x - MOVEMENT_BUFFER < self.left_pad.x <= self.left_pad.prev_x + MOVEMENT_BUFFER:
-        #     gen1.fitness -= MOVEMENT_REWARD
-        #     print('left: ', self.left_pad.x, self.left_pad.prev_x)
-        # if self.right_pad.prev_x - MOVEMENT_BUFFER < self.right_pad.x <= self.right_pad.prev_x + MOVEMENT_BUFFER:
-        #     gen2.fitness -= MOVEMENT_REWARD
-        #     print('right:', self.right_pad.x, self.right_pad.prev_x)
-
-        return (gen1.fitness + gen2.fitness) / 2
+    def calc_fitness(self, game_info, duration):
+        self.gen1.fitness += game_info.left_hits + duration
+        self.gen2.fitness += game_info.right_hits + duration
+        return self.gen1.fitness
 
 
 def save_gen(gen, genomes_path):
-    with open(os.path.join(genomes_path, f'Gen_fit-{gen.fitness}.genome'), 'wb') as f:
+    with open(os.path.join(genomes_path, f'Gen_fit-{round(gen.fitness, 1)}.genome'), 'wb') as f:
         pickle.dump(gen, f)
 
 
@@ -151,14 +150,13 @@ def load_gen(file_path):
 
 def fitness(genomes, config):
     for c, (_, gen1) in enumerate(genomes):
-        if c == len(genomes) - 1:
-            break
         gen1.fitness = 0
-        for _, gen2 in genomes[c + 1:]:
+        for _, gen2 in genomes[min(c + 1, len(genomes) - 1):]:
             gen2.fitness = 0 if gen2.fitness == None else gen2.fitness
-            pong = Pong(WIN, WIN_WIDTH, WIN_HEIGHT,
-                        MAX_BALL_VEL, PAD_VEL, MAX_FIT)
-            pong.train_ai(gen1, gen2, config)
+            force_quit = Pong(WIN, WIN_WIDTH, WIN_HEIGHT, MAX_BALL_VEL,
+                              PAD_VEL, MAX_FIT).train_ai(gen1, gen2, config)
+            if force_quit:
+                quit()
 
 
 def run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None):
@@ -208,6 +206,6 @@ if __name__ == "__main__":
     loc_dir = os.path.dirname(__file__)
     config_path = os.path.join(
         loc_dir, 'NEAT_configs', 'config-feedforward.txt')
-    best_gen_path = os.path.join(loc_dir, 'genomes', f'Gen_fit-{120}.genome')
+    best_gen_path = os.path.join(loc_dir, 'genomes', f'Gen_fit-{26.6}.genome')
     genomes_path = os.path.join(loc_dir, 'genomes')
     main(config_path, best_gen_path, genomes_path)
