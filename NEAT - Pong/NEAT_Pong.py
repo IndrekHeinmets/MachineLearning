@@ -41,10 +41,8 @@ class Pong:
     def __init__(self, win, width, height, ball_vel, pad_vel, max_fit):
         self.game = Game(win, width, height, MAX_BALL_VEL, PAD_VEL, max_fit)
         self.left_pad = self.game.left_paddle
-        self.left_pad.prev_x = 0
         self.left_pad.vel = pad_vel
         self.right_pad = self.game.right_paddle
-        self.right_pad.prev_x = 0
         self.right_pad.vel = pad_vel
         self.ball = self.game.ball
         self.ball.max_vel = ball_vel

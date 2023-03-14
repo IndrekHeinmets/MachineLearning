@@ -18,8 +18,8 @@ class Game:
     FONT = pygame.font.SysFont("ariel", FONT_SIZE)
     WHITE = (255, 255, 255)
     BLACK = (0, 0, 0)
-    GREEN = (0, 255, 0)
     RED = (255, 0, 0)
+    GREEN = (0, 255, 0)
     YELLOW = (255, 250, 0)
     BG_IMG = pygame.image.load(os.path.join("assets", "bg.png"))
 
