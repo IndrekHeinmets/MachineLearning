@@ -21,7 +21,7 @@ ON_SCREEN_WEIGHT = 1
 HIT_WEIGHT = 1
 
 # Game parameters:
-MAX_BALL_VEL = 9
+MAX_BALL_VEL = 10
 PAD_VEL = 10
 TIME_MULT = 10  # 1 - for Debugging & Observing, 10 - for Optimal Training
 
