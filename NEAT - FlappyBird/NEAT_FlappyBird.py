@@ -41,18 +41,14 @@ pygame.display.set_icon(pygame.image.load(os.path.join("assets", "icon.ico")))
 
 # Load images:
 bg_color = 'd'  # d = day, n = night
-BG_IMG = pygame.transform.scale2x(pygame.image.load(
-    os.path.join("assets", f"bg_{bg_color}.png")))
-BASE_IMG = pygame.transform.scale2x(
-    pygame.image.load(os.path.join("assets", "base.png")))
+BG_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", f"bg_{bg_color}.png")))
+BASE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", "base.png")))
 
 bird_color = 'b'  # r = red, y = yellow, b = blue
-BIRD_IMGS = [pygame.transform.scale2x(pygame.image.load(os.path.join(
-    "assets", f"{pos}flap_{bird_color}.png"))) for pos in ['up', 'mid', 'down']]
+BIRD_IMGS = [pygame.transform.scale2x(pygame.image.load(os.path.join("assets", f"{pos}flap_{bird_color}.png"))) for pos in ['up', 'mid', 'down']]
 
 pipe_color = 'g'  # g = green, r = red
-PIPE_IMG = pygame.transform.scale2x(pygame.image.load(
-    os.path.join("assets", f"pipe_{pipe_color}.png")))
+PIPE_IMG = pygame.transform.scale2x(pygame.image.load(os.path.join("assets", f"pipe_{pipe_color}.png")))
 
 
 class Bird:
@@ -120,8 +116,7 @@ class Bird:
 
         # Rotate image based on tilt and blit:
         rotated_img = pygame.transform.rotate(self.img, self.tilt)
-        new_rect = rotated_img.get_rect(
-            center=self.img.get_rect(topleft=(self.x, self.y)).center)
+        new_rect = rotated_img.get_rect(center=self.img.get_rect(topleft=(self.x, self.y)).center)
         win.blit(rotated_img, new_rect.topleft)
 
     def get_mask(self):
@@ -216,8 +211,7 @@ def draw_win(win, birds, pipes, base, score, gen, pipe_i):
     text = FONT.render(f'Score: {str(score)}', 1, BLACK)
     win.blit(text, (WIN_WIDTH - 5 - text.get_width(), 5))
 
-    text = FONT.render(f'High Score: {str(HIGH_SCORE)}', 1,
-                       BLACK if score < HIGH_SCORE or HIGH_SCORE == 0 else GREEN)
+    text = FONT.render(f'High Score: {str(HIGH_SCORE)}', 1, BLACK if score < HIGH_SCORE or HIGH_SCORE == 0 else GREEN)
     win.blit(text, (WIN_WIDTH - 5 - text.get_width(), FONT_SIZE))
 
     if MODE == 'train' or MODE == 'test' or MODE == 'restore_train':
@@ -229,8 +223,7 @@ def draw_win(win, birds, pipes, base, score, gen, pipe_i):
                 bird.gen.fitness < MAX_FIT or MAX_FIT == 0 for bird in birds) else GREEN)
             win.blit(text, (5, FONT_SIZE))
 
-        text = FONT.render(f'Alive: {str(len(birds))}',
-                           1, BLACK if len(birds) > 5 else RED)
+        text = FONT.render(f'Alive: {str(len(birds))}', 1, BLACK if len(birds) > 5 else RED)
         win.blit(text, (5, (FONT_SIZE * 2) - 5))
 
     base.draw(win)
@@ -258,7 +251,7 @@ def fitness(genomes, config):
     for _, gen in genomes:
         gen.fitness = 0
         birds.append(Bird(START_X, START_Y, gen,
-                     neat.nn.FeedForwardNetwork.create(gen, config)))
+                          neat.nn.FeedForwardNetwork.create(gen, config)))
 
     base = Base(FLOOR)
     pipes = [Pipe(PIPE_SPAWN_LOC)]
@@ -342,7 +335,7 @@ def run_gen(config_path, best_gen_path):
     birds, score, WORLD_VEL = [], 0, BASE_WORLD_VEL
     _, gen = load_gen(best_gen_path)
     birds.append(Bird(START_X, START_Y, gen,
-                 neat.nn.FeedForwardNetwork.create(gen, config)))
+                      neat.nn.FeedForwardNetwork.create(gen, config)))
     base = Base(FLOOR)
     pipes = [Pipe(PIPE_SPAWN_LOC)]
     clock = pygame.time.Clock()
@@ -367,8 +360,7 @@ def run_gen(config_path, best_gen_path):
         for bird in birds:
             bird.move()
 
-            net_out = bird.net.activate(
-                (bird.y, abs(bird.y - pipes[pipe_i].height), abs(bird.y - pipes[pipe_i].bottom)))
+            net_out = bird.net.activate((bird.y, abs(bird.y - pipes[pipe_i].height), abs(bird.y - pipes[pipe_i].bottom)))
 
             if net_out[0] > 0.5:
                 bird.jump()
@@ -476,8 +468,7 @@ def run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None):
                          neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
     if restore:
-        pop = neat.Checkpointer.restore_checkpoint(
-            os.path.join(f'checkpoints', f'Cp-{cp_n}'))
+        pop = neat.Checkpointer.restore_checkpoint(os.path.join(f'checkpoints', f'Cp-{cp_n}'))
     else:
         pop = neat.Population(config)
 
@@ -485,8 +476,7 @@ def run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None):
     pop.add_reporter(neat.StatisticsReporter())
 
     if cp_rc:
-        pop.add_reporter(neat.Checkpointer(CHECKPOINT_FREQUENCY,
-                         filename_prefix=os.path.join('checkpoints', 'Cp-')))
+        pop.add_reporter(neat.Checkpointer(CHECKPOINT_FREQUENCY, filename_prefix=os.path.join('checkpoints', 'Cp-')))
 
     if MODE == 'train' or MODE == 'restore_train':
         best_genome = pop.run(fitness, MAX_GENERATIONS)
