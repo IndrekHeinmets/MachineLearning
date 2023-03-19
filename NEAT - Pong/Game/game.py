@@ -30,12 +30,9 @@ class Game:
         self.ball_vel = ball_vel
         self.pad_vel = pad_vel
 
-        self.left_paddle = Paddle(
-            10, self.win_height // 2 - Paddle.HEIGHT // 2, self.pad_vel)
-        self.right_paddle = Paddle(
-            self.win_width - 10 - Paddle.WIDTH, self.win_height // 2 - Paddle.HEIGHT//2, self.pad_vel)
-        self.ball = Ball(self.win_width // 2,
-                         self.win_height // 2, self.ball_vel)
+        self.left_paddle = Paddle(10, self.win_height // 2 - Paddle.HEIGHT // 2, self.pad_vel)
+        self.right_paddle = Paddle(self.win_width - 10 - Paddle.WIDTH, self.win_height // 2 - Paddle.HEIGHT // 2, self.pad_vel)
+        self.ball = Ball(self.win_width // 2, self.win_height // 2, self.ball_vel)
 
         self.left_score = 0
         self.right_score = 0
@@ -49,20 +46,15 @@ class Game:
             self.YELLOW if self.left_score == self.right_score else self.RED))
         right_score_text = self.FONT.render(f'{self.right_score}', 1, self.GREEN if self.right_score > self.left_score else (
             self.YELLOW if self.right_score == self.left_score else self.RED))
-        self.win.blit(left_score_text, (self.win_width // 4 -
-                      left_score_text.get_width() // 2, 10))
-        self.win.blit(right_score_text, (self.win_width *
-                      (3 / 4) - right_score_text.get_width() // 2, 10))
+        self.win.blit(left_score_text, (self.win_width // 4 - left_score_text.get_width() // 2, 10))
+        self.win.blit(right_score_text, (self.win_width * (3 / 4) - right_score_text.get_width() // 2, 10))
 
     def _draw_hits(self):
-        hits_text = self.FONT.render(
-            f'{self.left_hits + self.right_hits}', 1, self.WHITE)
-        self.win.blit(hits_text, (self.win_width - hits_text.get_width() -
-                      15, self.win_height - self.FONT_SIZE + 2))
+        hits_text = self.FONT.render(f'{self.left_hits + self.right_hits}', 1, self.WHITE)
+        self.win.blit(hits_text, (self.win_width - hits_text.get_width() - 15, self.win_height - self.FONT_SIZE + 2))
 
     def _draw_stats(self):
-        stats_text = self.FONT.render(
-            f'Fit: {round(self.max_fit, 1)}', 1, self.WHITE)
+        stats_text = self.FONT.render(f'Fit: {round(self.max_fit, 1)}', 1, self.WHITE)
         self.win.blit(stats_text, (10, self.win_height - self.FONT_SIZE + 2))
 
     def _draw_divider(self, win_size, aspect_ratio):
@@ -73,8 +65,7 @@ class Game:
             if i % 2 == 1:
                 continue
             rect_y = i * aspect_ratio
-            pygame.draw.rect(
-                self.win, self.WHITE, (win_size[0] // 2 - rect_width // 2, rect_y, rect_width, rect_height))
+            pygame.draw.rect(self.win, self.WHITE, (win_size[0] // 2 - rect_width // 2, rect_y, rect_width, rect_height))
 
     def _handle_collision(self):
         ball = self.ball
@@ -111,8 +102,7 @@ class Game:
     def draw(self, draw_score=True, draw_hits=False, draw_stats=True):
         self.win.fill(self.WHITE)
         self.win.blit(self.BG_IMG, (0, 0))
-        self._draw_divider((self.win_width, self.win_height),
-                           (self.win_width / self.win_height))
+        self._draw_divider((self.win_width, self.win_height), (self.win_width / self.win_height))
 
         if draw_score:
             self._draw_score()
@@ -153,8 +143,7 @@ class Game:
             self.ball.reset()
             self.left_score += 1
 
-        game_info = GameInformation(
-            self.left_hits, self.right_hits, self.left_score, self.right_score)
+        game_info = GameInformation(self.left_hits, self.right_hits, self.left_score, self.right_score)
         return game_info
 
     def reset(self):

@@ -7,7 +7,7 @@ import os
 pygame.font.init()
 
 # Settings: [MODE: 'pp'-(player vs player), 'ap'-(ai(LHS) vs player(RHS)), 'pa'-(player(LHS) vs ai(RHS)), 'aa'-(ai vs ai), 'train'-(ai training configuration), 'restore_train'-(ai training configuration)]
-MODE = 'ap'
+MODE = 'pa'
 BEST_GEN_FIT = 26
 RESTORE_CHECKPOINT = 29
 
@@ -62,8 +62,7 @@ class Pong:
             self.game.move_paddle(left=False, up=False)
 
     def run_net_decision(self, net, pad):
-        net_out = net.activate(
-            (pad.y, self.ball.y, abs(pad.x - self.ball.x)))
+        net_out = net.activate((pad.y, self.ball.y, abs(pad.x - self.ball.x)))
         return net_out.index(max(net_out))
 
     def net_move_pad(self, move, gen, left=True):
@@ -95,18 +94,14 @@ class Pong:
                 self.lhs_player_controlls()
                 self.rhs_player_controlls()
             elif MODE == 'ap':
-                self.net_move_pad(self.run_net_decision(
-                    net1, self.left_pad), gen1, left=True)
+                self.net_move_pad(self.run_net_decision(net1, self.left_pad), gen1, left=True)
                 self.rhs_player_controlls()
             elif MODE == 'pa':
                 self.lhs_player_controlls()
-                self.net_move_pad(self.run_net_decision(
-                    net2, self.right_pad), gen2, left=False)
+                self.net_move_pad(self.run_net_decision(net2, self.right_pad), gen2, left=False)
             elif MODE == 'aa':
-                self.net_move_pad(self.run_net_decision(
-                    net1, self.left_pad), gen1, left=True)
-                self.net_move_pad(self.run_net_decision(
-                    net2, self.right_pad), gen2, left=False)
+                self.net_move_pad(self.run_net_decision(net1, self.left_pad), gen1, left=True)
+                self.net_move_pad(self.run_net_decision(net2, self.right_pad), gen2, left=False)
 
             _ = self.game.loop()
             self.game.draw(draw_score=True, draw_hits=False, draw_stats=False)
@@ -125,10 +120,8 @@ class Pong:
                 if event.type == pygame.QUIT:
                     return True
 
-            self.net_move_pad(self.run_net_decision(
-                net1, self.left_pad), gen1, left=True)
-            self.net_move_pad(self.run_net_decision(
-                net2, self.right_pad), gen2, left=False)
+            self.net_move_pad(self.run_net_decision(net1, self.left_pad), gen1, left=True)
+            self.net_move_pad(self.run_net_decision(net2, self.right_pad), gen2, left=False)
 
             game_info = self.game.loop()
             self.game.draw(draw_score=False, draw_hits=True, draw_stats=True)
@@ -163,15 +156,13 @@ def fitness(genomes, config):
         gen1.fitness = 0
         for _, gen2 in genomes[min(c + 1, len(genomes) - 1):]:
             gen2.fitness = 0 if gen2.fitness == None else gen2.fitness
-            force_quit = Pong(WIN, WIN_WIDTH, WIN_HEIGHT, MAX_BALL_VEL,
-                              PAD_VEL, MAX_FIT).train_ai(gen1, gen2, config)
+            force_quit = Pong(WIN, WIN_WIDTH, WIN_HEIGHT, MAX_BALL_VEL, PAD_VEL, MAX_FIT).train_ai(gen1, gen2, config)
             if force_quit:
                 quit()
 
 
 def run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None):
-    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                         neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
 
     if restore:
         pop = neat.Checkpointer.restore_checkpoint(
@@ -183,8 +174,7 @@ def run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None):
     pop.add_reporter(neat.StatisticsReporter())
 
     if cp_rc:
-        pop.add_reporter(neat.Checkpointer(generation_interval=CHECKPOINT_FREQUENCY,
-                         filename_prefix=os.path.join('checkpoints', 'Cp-')))
+        pop.add_reporter(neat.Checkpointer(generation_interval=CHECKPOINT_FREQUENCY, filename_prefix=os.path.join('checkpoints', 'Cp-')))
 
     if restore:
         best_genome = pop.run(fitness, MAX_GENERATIONS - cp_n)
@@ -196,10 +186,8 @@ def run_neat(config_path, genomes_path, cp_rc=False, restore=False, cp_n=None):
 
 
 def run_gen(best_gen_path, config_path):
-    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction,
-                         neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
-    Pong(WIN, WIN_WIDTH, WIN_HEIGHT, MAX_BALL_VEL, PAD_VEL, MAX_FIT).test_ai(
-        load_gen(best_gen_path), load_gen(best_gen_path), config)
+    config = neat.Config(neat.DefaultGenome, neat.DefaultReproduction, neat.DefaultSpeciesSet, neat.DefaultStagnation, config_path)
+    Pong(WIN, WIN_WIDTH, WIN_HEIGHT, MAX_BALL_VEL, PAD_VEL, MAX_FIT).test_ai(load_gen(best_gen_path), load_gen(best_gen_path), config)
 
 
 def main(config_path, best_gen_path, genomes_path):
