@@ -7,24 +7,24 @@ pygame.font.init()
 
 # Settings: [MODE: 'train'-(train NEAT nn & save best), 'restore_train'-(restore training from a checkpoint), 'run'-(run existing genome), 'play'-(play with manual keboard input)]
 MODE = 'run'
-BEST_GEN_FIT = 250
+BEST_GEN_FIT = 1450
 RESTORE_CHECKPOINT = 18
 DRAW_LINES = True
 
 # Training parameters:
-MAX_GENERATIONS = 20
+MAX_GENERATIONS = 25
 CHECKPOINT_FREQUENCY = 1
 
 # Window parameters:
 AR = 5 / 8
 WIN_HEIGHT = 900
 WIN_WIDTH = round(WIN_HEIGHT * AR)
-FPS = 45
+FPS = 30
 FONT_SIZE = 35
 FONT = pygame.font.SysFont("ariel", FONT_SIZE)
 
 # Game parameters:
-BASE_WORLD_VEL = 5
+BASE_WORLD_VEL = 7
 WORLD_VEL, WORLD_ACC = BASE_WORLD_VEL, 0.1
 FLOOR = WIN_HEIGHT - 70
 MAX_FIT = 0
@@ -192,7 +192,7 @@ class Base():
 
 
 def save_gen(gen, genomes_path):
-    with open(os.path.join(genomes_path, f'Gen_fit-{gen.fitness}.genome'), 'wb') as f:
+    with open(os.path.join(genomes_path, f'Gen_fit-{round(gen.fitness)}.genome'), 'wb') as f:
         pickle.dump(gen, f)
 
 
